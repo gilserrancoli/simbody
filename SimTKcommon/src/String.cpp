@@ -52,7 +52,7 @@ String::String(float r, const char* fmt) {
     char buf[64]; sprintf(buf,fmt,r); (*this)=buf; 
 }
 
-String::String(double r, const char* fmt) {
+String::String(adouble r, const char* fmt) {
     if (!isFinite(r)) {
         if (isNaN(r)) {(*this)="NaN"; return;}
         if (isInf(r)) {(*this)=(r<0?"-Inf":"Inf"); return;}
@@ -100,14 +100,14 @@ bool String::tryConvertToFloat(float& out) const {
     return !sstream.fail();
 }
 
-bool String::tryConvertToDouble(double& out) const {
+bool String::tryConvertToDouble(adouble& out) const {
     const String adjusted = cleanUp(*this);
-    if (adjusted=="nan")  {out=NTraits<double>::getNaN();  return true;}
+    if (adjusted=="nan")  {out=NTraits<adouble>::getNaN();  return true;}
     if (   adjusted=="inf" || adjusted=="infinity"
         || adjusted=="+inf" || adjusted=="+infinity") 
-    {   out = NTraits<double>::getInfinity(); return true;}
+    {   out = NTraits<adouble>::getInfinity(); return true;}
     if (adjusted=="-inf" || adjusted=="-infinity") 
-    {   out = -NTraits<double>::getInfinity(); return true;}
+    {   out = -NTraits<adouble>::getInfinity(); return true;}
     std::istringstream sstream(adjusted);
     sstream >> out;
     return !sstream.fail();

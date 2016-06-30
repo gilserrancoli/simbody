@@ -287,8 +287,8 @@ public:
     // the complex, which means we must negate the imaginary part.
     explicit conjugate(const complex<float>& x)
       { re = x.real(); negIm = -x.imag(); }
-    explicit conjugate(const complex<double>& x)
-      { re = float(x.real()); negIm = float(-x.imag()); }
+    //explicit conjugate(const complex<double>& x)
+    //  { re = float(x.real()); negIm = float(-x.imag());	}
     explicit conjugate(const complex<long double>& x)
       { re = float(x.real()); negIm = float(-x.imag()); }
 
@@ -686,7 +686,6 @@ public:
       { re += c.real(); negIm -= c.imag(); return *this; }
     conjugate& operator-=(const complex<double>& c)
       { re -= c.real(); negIm += c.imag(); return *this; }
-
     conjugate& operator=(const complex<float>& c)
       { re =  c.real(); negIm = -c.imag(); return *this; }
     conjugate& operator+=(const complex<float>& c)
@@ -727,8 +726,8 @@ public:
         return *this;
     }
 
-    conjugate& operator/=(const conjugate<double>& c)    { return operator/=(conjugate<long double>(c)); }
-    conjugate& operator/=(const complex<double>& c) { return operator/=(complex<long double>(c)); }
+    //conjugate& operator/=(const conjugate<double>& c)    { return operator/=(conjugate<long double>(c)); }
+    //conjugate& operator/=(const complex<double>& c) { return operator/=(complex<long double>(c)); }
     conjugate& operator/=(const conjugate<float>& c)     { return operator/=(conjugate<long double>(c)); }
     conjugate& operator/=(const complex<float>& c)  { return operator/=(complex<long double>(c)); }
 
@@ -752,9 +751,9 @@ private:
 };
 
 // These definitions had to be deferred until all the specializations have been declared.
-conjugate<float>::conjugate(const conjugate<double>& cd) { 
-    re = float(cd.real()); negIm = float(cd.negImag());
-}
+//conjugate<float>::conjugate(const conjugate<double>& cd) { 
+//    re = float(cd.real()); negIm = float(cd.negImag());
+//}
 conjugate<float>::conjugate(const conjugate<long double>& cl) {
     re = float(cl.real()); negIm = float(cl.negImag());
 }

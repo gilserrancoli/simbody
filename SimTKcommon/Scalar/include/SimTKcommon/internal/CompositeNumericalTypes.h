@@ -263,9 +263,11 @@ public:
     template <class K2> static bool 
     isNumericallyEqual(const K& t1, const K2& t2) 
     {   return t1.isNumericallyEqual(t2);}
-    template <class K2> static bool 
+    
+	template <class K2> static bool 
     isNumericallyEqual(const K& t1, const K2& t2, double tol)
     {   return t1.isNumericallyEqual(t2,tol);}
+
     static double getDefaultTolerance() {return K::getDefaultTolerance();}
 
 };

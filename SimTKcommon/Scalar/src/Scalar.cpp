@@ -46,8 +46,8 @@ const Real MostPositiveReal  = NTraits<Real>::getMostPositive();
 const Real LeastNegativeReal = NTraits<Real>::getLeastNegative();
 const Real MostNegativeReal  = NTraits<Real>::getMostNegative();
 
-const int NumDigitsReal = NTraits<Real>::getNumDigits(); 
-const int LosslessNumDigitsReal = NTraits<Real>::getLosslessNumDigits();
+//const int NumDigitsReal = NTraits<Real>::getNumDigits(); 
+//const int LosslessNumDigitsReal = NTraits<Real>::getLosslessNumDigits();
 
 const Real Zero         = NTraits<Real>::getZero();
 const Real One          = NTraits<Real>::getOne(); 
@@ -86,18 +86,20 @@ const Complex I = NTraits<Complex>::getI();
 
 template class negator<float>;
 template class negator<double>;
+template class negator<adouble>;
 template class negator<long double>;
 
 template class negator< complex<float> >;
 template class negator< complex<double> >;
 template class negator< complex<long double> >;
 
-template class negator< conjugate<float> >;
-template class negator< conjugate<double> >;
-template class negator< conjugate<long double> >;
+template class negator<conjugate<float>>;
+template class negator<conjugate<double>>;
+template class negator<conjugate<long double>>;
 
 template class CNT< negator<float> >;
 template class CNT< negator<double> >;
+template class CNT< negator<adouble> >;
 template class CNT< negator<long double> >;
 
 template class CNT< complex<float> >;
@@ -139,11 +141,19 @@ INSTANTIATE_ALL_LEFT(conjugate<long double>);
 // Don't duplicate anything instantiated with the previous macro.
 #define INSTANTIATE_ALL_RIGHT(T) \
 template bool isNumericallyEqual(const float&,                  const T&, double tol); \
-template bool isNumericallyEqual(const double&,                 const T&, double tol); \
+template bool isNumericallyEqual(const double&,                const T&, double tol); \
+template bool isNumericallyEqual(const adouble&,                const T&, double tol); \
 template bool isNumericallyEqual(const long double&,            const T&, double tol); \
 template bool isNumericallyEqual(int,                           const T&, double tol)
 
-INSTANTIATE_ALL_RIGHT(complex<float>);
+template bool isNumericallyEqual(const float&, const complex<double>&, double tol);
+template bool isNumericallyEqual(const double&, const complex<double>&, double tol);
+template bool isNumericallyEqual(const adouble&, const complex<double>&, double tol);
+template bool isNumericallyEqual(const long double&, const complex<double>&, double tol);
+template bool isNumericallyEqual(int, const complex<double>&, double tol);
+
+
+//INSTANTIATE_ALL_RIGHT(complex<float>);
 INSTANTIATE_ALL_RIGHT(complex<double>);
 INSTANTIATE_ALL_RIGHT(complex<long double>);
 INSTANTIATE_ALL_RIGHT(conjugate<float>);

@@ -885,12 +885,12 @@ typename Row<N,E,S>::template Result<float>::Mul
 operator*(const float& l, const Row<N,E,S>& r) {return r*l;}
 
 template <int N, class E, int S> inline
-typename Row<N,E,S>::template Result<double>::Mul
-operator*(const Row<N,E,S>& l, const double& r)
-  { return Row<N,E,S>::template Result<double>::MulOp::perform(l,r); }
+typename Row<N,E,S>::template Result<adouble>::Mul
+operator*(const Row<N,E,S>& l, const adouble& r)
+  { return Row<N,E,S>::template Result<adouble>::MulOp::perform(l,r); }
 template <int N, class E, int S> inline
-typename Row<N,E,S>::template Result<double>::Mul
-operator*(const double& l, const Row<N,E,S>& r) {return r*l;}
+typename Row<N,E,S>::template Result<adouble>::Mul
+operator*(const adouble& l, const Row<N,E,S>& r) {return r*l;}
 
 template <int N, class E, int S> inline
 typename Row<N,E,S>::template Result<long double>::Mul
@@ -951,18 +951,20 @@ operator/(const float& l, const Row<N,E,S>& r)
   { return CNT<float>::template Result<Row<N,E,S> >::DvdOp::perform(l,r); }
 
 template <int N, class E, int S> inline
-typename Row<N,E,S>::template Result<double>::Dvd
-operator/(const Row<N,E,S>& l, const double& r)
-  { return Row<N,E,S>::template Result<double>::DvdOp::perform(l,r); }
+typename Row<N,E,S>::template Result<adouble>::Dvd
+operator/(const Row<N,E,S>& l, const adouble& r)
+  { return Row<N,E,S>::template Result<adouble>::DvdOp::perform(l,r); }
+
 template <int N, class E, int S> inline
-typename CNT<double>::template Result<Row<N,E,S> >::Dvd
-operator/(const double& l, const Row<N,E,S>& r)
-  { return CNT<double>::template Result<Row<N,E,S> >::DvdOp::perform(l,r); }
+typename CNT<adouble>::template Result<Row<N,E,S> >::Dvd
+operator/(const adouble& l, const Row<N,E,S>& r)
+  { return CNT<adouble>::template Result<Row<N,E,S> >::DvdOp::perform(l,r); }
 
 template <int N, class E, int S> inline
 typename Row<N,E,S>::template Result<long double>::Dvd
 operator/(const Row<N,E,S>& l, const long double& r)
   { return Row<N,E,S>::template Result<long double>::DvdOp::perform(l,r); }
+
 template <int N, class E, int S> inline
 typename CNT<long double>::template Result<Row<N,E,S> >::Dvd
 operator/(const long double& l, const Row<N,E,S>& r)
@@ -1022,12 +1024,12 @@ typename Row<N,E,S>::template Result<float>::Add
 operator+(const float& l, const Row<N,E,S>& r) {return r+l;}
 
 template <int N, class E, int S> inline
-typename Row<N,E,S>::template Result<double>::Add
-operator+(const Row<N,E,S>& l, const double& r)
-  { return Row<N,E,S>::template Result<double>::AddOp::perform(l,r); }
+typename Row<N,E,S>::template Result<adouble>::Add
+operator+(const Row<N,E,S>& l, const adouble& r)
+  { return Row<N,E,S>::template Result<adouble>::AddOp::perform(l,r); }
 template <int N, class E, int S> inline
-typename Row<N,E,S>::template Result<double>::Add
-operator+(const double& l, const Row<N,E,S>& r) {return r+l;}
+typename Row<N,E,S>::template Result<adouble>::Add
+operator+(const adouble& l, const Row<N,E,S>& r) {return r+l;}
 
 template <int N, class E, int S> inline
 typename Row<N,E,S>::template Result<long double>::Add
@@ -1085,13 +1087,13 @@ operator-(const float& l, const Row<N,E,S>& r)
   { return CNT<float>::template Result<Row<N,E,S> >::SubOp::perform(l,r); }
 
 template <int N, class E, int S> inline
-typename Row<N,E,S>::template Result<double>::Sub
-operator-(const Row<N,E,S>& l, const double& r)
-  { return Row<N,E,S>::template Result<double>::SubOp::perform(l,r); }
+typename Row<N,E,S>::template Result<adouble>::Sub
+operator-(const Row<N,E,S>& l, const adouble& r)
+  { return Row<N,E,S>::template Result<adouble>::SubOp::perform(l,r); }
 template <int N, class E, int S> inline
-typename CNT<double>::template Result<Row<N,E,S> >::Sub
-operator-(const double& l, const Row<N,E,S>& r)
-  { return CNT<double>::template Result<Row<N,E,S> >::SubOp::perform(l,r); }
+typename CNT<adouble>::template Result<Row<N,E,S> >::Sub
+operator-(const adouble& l, const Row<N,E,S>& r)
+  { return CNT<adouble>::template Result<Row<N,E,S> >::SubOp::perform(l,r); }
 
 template <int N, class E, int S> inline
 typename Row<N,E,S>::template Result<long double>::Sub

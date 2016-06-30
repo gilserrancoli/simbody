@@ -271,7 +271,8 @@ template <class N2> friend class negator;
 /// @addtogroup isNaN
 //@{
 inline bool isNaN(const negator<float>&  x) {return isNaN(-x);}
-inline bool isNaN(const negator<double>& x) {return isNaN(-x);}
+inline bool isNaN(const negator<double>& x) { return isNaN(-x); }
+inline bool isNaN(const negator<adouble>& x) {return isNaN(-x);}
 inline bool isNaN(const negator<long double>& x) {return isNaN(-x);}
 template <class P> inline bool
 isNaN(const negator< std::complex<P> >& x) {return isNaN(-x);}
@@ -285,7 +286,8 @@ isNaN(const negator< conjugate<P> >&    x) {return isNaN(-x);}
 /// @addtogroup isFinite
 //@{
 inline bool isFinite(const negator<float>&  x) {return isFinite(-x);}
-inline bool isFinite(const negator<double>& x) {return isFinite(-x);}
+inline bool isFinite(const negator<double>& x) { return isFinite(-x); }
+inline bool isFinite(const negator<adouble>& x) {return isFinite(-x);}
 inline bool isFinite(const negator<long double>& x) {return isFinite(-x);}
 template <class P> inline bool
 isFinite(const negator< std::complex<P> >& x) {return isFinite(-x);}
@@ -299,7 +301,8 @@ isFinite(const negator< conjugate<P> >&    x) {return isFinite(-x);}
 /// @addtogroup isInf
 //@{
 inline bool isInf(const negator<float>&  x) {return isInf(-x);}
-inline bool isInf(const negator<double>& x) {return isInf(-x);}
+inline bool isInf(const negator<double>& x) { return isInf(-x); }
+inline bool isInf(const negator<adouble>& x) {return isInf(-x);}
 inline bool isInf(const negator<long double>& x) {return isInf(-x);}
 template <class P> inline bool
 isInf(const negator< std::complex<P> >& x) {return isInf(-x);}

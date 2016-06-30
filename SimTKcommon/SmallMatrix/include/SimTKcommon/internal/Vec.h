@@ -948,12 +948,12 @@ public:
 
     /** For approximate comparisons, the default tolerance to use for a vector is
     the same as its elements' default tolerance. **/
-    static double getDefaultTolerance() {return CNT<ELT>::getDefaultTolerance();}
+    static Real getDefaultTolerance() {return CNT<ELT>::getDefaultTolerance();}
 
     /** %Test whether this vector is numerically equal to some other vector with
     the same shape, using a specified tolerance. **/
     template <class E2, int RS2>
-    bool isNumericallyEqual(const Vec<M,E2,RS2>& v, double tol) const {
+    bool isNumericallyEqual(const Vec<M,E2,RS2>& v, Real tol) const {
         for (int i=0; i<M; ++i)
             if (!CNT<ELT>::isNumericallyEqual((*this)[i], v[i], tol))
                 return false;
@@ -965,7 +965,7 @@ public:
     default tolerances of the two objects being compared. **/
     template <class E2, int RS2>
     bool isNumericallyEqual(const Vec<M,E2,RS2>& v) const {
-        const double tol = std::max(getDefaultTolerance(),v.getDefaultTolerance());
+        const Real tol = std::max(getDefaultTolerance(),v.getDefaultTolerance());
         return isNumericallyEqual(v, tol);
     }
 
@@ -975,7 +975,7 @@ public:
     tolerance for one of its elements). **/
     bool isNumericallyEqual
        (const ELT& e,
-        double     tol = getDefaultTolerance()) const 
+        Real     tol = getDefaultTolerance()) const 
     {
         for (int i=0; i<M; ++i)
             if (!CNT<ELT>::isNumericallyEqual((*this)[i], e, tol))
@@ -1104,28 +1104,28 @@ operator>=(const Vec<M,E1,S1>& v, const E2& e)
 
 // v = v*real, real*v 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<float>::Mul
-operator*(const Vec<M,E,S>& l, const float& r)
-  { return Vec<M,E,S>::template Result<float>::MulOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Mul
+operator*(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::MulOp::perform(l,r); }
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<float>::Mul
-operator*(const float& l, const Vec<M,E,S>& r) {return r*l;}
+typename Vec<M,E,S>::template Result<adouble>::Mul
+operator*(const adouble& l, const Vec<M,E,S>& r) {return r*l;}
 
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Mul
-operator*(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::MulOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Mul
-operator*(const double& l, const Vec<M,E,S>& r) {return r*l;}
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<Real>::Mul
+//operator*(const Vec<M,E,S>& l, const Real& r)
+//  { return Vec<M,E,S>::template Result<Real>::MulOp::perform(l,r); }
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<Real>::Mul
+//operator*(const Real& l, const Vec<M,E,S>& r) {return r*l;}
 
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<long double>::Mul
-operator*(const Vec<M,E,S>& l, const long double& r)
-  { return Vec<M,E,S>::template Result<long double>::MulOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<long double>::Mul
-operator*(const long double& l, const Vec<M,E,S>& r) {return r*l;}
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<adouble>::Mul
+//operator*(const Vec<M,E,S>& l, const adouble& r)
+//  { return Vec<M,E,S>::template Result<adouble>::MulOp::perform(l,r); }
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<adouble>::Mul
+//operator*(const adouble& l, const Vec<M,E,S>& r) {return r*l;}
 
 // v = v*int, int*v -- just convert int to v's precision float
 template <int M, class E, int S> inline
@@ -1169,31 +1169,35 @@ operator*(const negator<R>& l, const Vec<M,E,S>& r) {return r * (typename negato
 
 // v = v/real, real/v 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<float>::Dvd
-operator/(const Vec<M,E,S>& l, const float& r)
-  { return Vec<M,E,S>::template Result<float>::DvdOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename CNT<float>::template Result<Vec<M,E,S> >::Dvd
-operator/(const float& l, const Vec<M,E,S>& r)
-  { return CNT<float>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Dvd
+operator/(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::DvdOp::perform(l,r); }
+
+
+//template <int M, class E, int S> inline
+//typename CNT<adouble>::template Result<Vec<M,E,S> >::Dvd
+//operator/(const adouble& l, const Vec<M,E,S>& r)
+//  { return CNT<adouble>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<Real>::Dvd
+//operator/(const Vec<M,E,S>& l, const Real& r)
+//  { return Vec<M,E,S>::template Result<Real>::DvdOp::perform(l,r); }
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Dvd
-operator/(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::DvdOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename CNT<double>::template Result<Vec<M,E,S> >::Dvd
-operator/(const double& l, const Vec<M,E,S>& r)
-  { return CNT<double>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
+typename CNT<Real>::template Result<Vec<M,E,S> >::Dvd
+operator/(const Real& l, const Vec<M,E,S>& r)
+  { return CNT<Real>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
 
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<long double>::Dvd
-operator/(const Vec<M,E,S>& l, const long double& r)
-  { return Vec<M,E,S>::template Result<long double>::DvdOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename CNT<long double>::template Result<Vec<M,E,S> >::Dvd
-operator/(const long double& l, const Vec<M,E,S>& r)
-  { return CNT<long double>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<adouble>::Dvd
+//operator/(const Vec<M,E,S>& l, const adouble& r)
+//  { return Vec<M,E,S>::template Result<adouble>::DvdOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename CNT<adouble>::template Result<Vec<M,E,S> >::Dvd
+//operator/(const adouble& l, const Vec<M,E,S>& r)
+//  { return CNT<adouble>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
 
 // v = v/int, int/v -- just convert int to v's precision float
 template <int M, class E, int S> inline
@@ -1241,33 +1245,37 @@ operator/(const negator<R>& l, const Vec<M,E,S>& r) {return (typename negator<R>
 
 // v = v+real, real+v 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<float>::Add
-operator+(const Vec<M,E,S>& l, const float& r)
-  { return Vec<M,E,S>::template Result<float>::AddOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<float>::Add
-operator+(const float& l, const Vec<M,E,S>& r) {return r+l;}
+typename Vec<M,E,S>::template Result<adouble>::Add
+operator+(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::AddOp::perform(l,r); }
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Add
-operator+(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::AddOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Add
-operator+(const double& l, const Vec<M,E,S>& r) {return r+l;}
+typename Vec<M,E,S>::template Result<adouble>::Add
+operator+(const adouble& l, const Vec<M,E,S>& r) {return r+l;}
 
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<long double>::Add
-operator+(const Vec<M,E,S>& l, const long double& r)
-  { return Vec<M,E,S>::template Result<long double>::AddOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<long double>::Add
-operator+(const long double& l, const Vec<M,E,S>& r) {return r+l;}
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<Real>::Add
+//operator+(const Vec<M,E,S>& l, const Real& r)
+//  { return Vec<M,E,S>::template Result<Real>::AddOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<Real>::Add
+//operator+(const Real& l, const Vec<M,E,S>& r) {return r+l;}
+
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<adouble>::Add
+//operator+(const Vec<M,E,S>& l, const adouble& r)
+//  { return Vec<M,E,S>::template Result<adouble>::AddOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<adouble>::Add
+//operator+(const adouble& l, const Vec<M,E,S>& r) {return r+l;}
 
 // v = v+int, int+v -- just convert int to v's precision float
 template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<typename CNT<E>::Precision>::Add
 operator+(const Vec<M,E,S>& l, int r) {return l + (typename CNT<E>::Precision)r;}
+
 template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<typename CNT<E>::Precision>::Add
 operator+(int l, const Vec<M,E,S>& r) {return r + (typename CNT<E>::Precision)l;}
@@ -1303,31 +1311,34 @@ operator+(const negator<R>& l, const Vec<M,E,S>& r) {return r + (typename negato
 
 // v = v-real, real-v 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<float>::Sub
-operator-(const Vec<M,E,S>& l, const float& r)
-  { return Vec<M,E,S>::template Result<float>::SubOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename CNT<float>::template Result<Vec<M,E,S> >::Sub
-operator-(const float& l, const Vec<M,E,S>& r)
-  { return CNT<float>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Sub
+operator-(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::SubOp::perform(l,r); }
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Sub
-operator-(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::SubOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename CNT<double>::template Result<Vec<M,E,S> >::Sub
-operator-(const double& l, const Vec<M,E,S>& r)
-  { return CNT<double>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
+typename CNT<adouble>::template Result<Vec<M,E,S> >::Sub
+operator-(const adouble& l, const Vec<M,E,S>& r)
+  { return CNT<adouble>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
 
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<long double>::Sub
-operator-(const Vec<M,E,S>& l, const long double& r)
-  { return Vec<M,E,S>::template Result<long double>::SubOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename CNT<long double>::template Result<Vec<M,E,S> >::Sub
-operator-(const long double& l, const Vec<M,E,S>& r)
-  { return CNT<long double>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<Real>::Sub
+//operator-(const Vec<M,E,S>& l, const Real& r)
+//  { return Vec<M,E,S>::template Result<Real>::SubOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename CNT<Real>::template Result<Vec<M,E,S> >::Sub
+//operator-(const Real& l, const Vec<M,E,S>& r)
+//  { return CNT<Real>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<adouble>::Sub
+//operator-(const Vec<M,E,S>& l, const adouble& r)
+//  { return Vec<M,E,S>::template Result<adouble>::SubOp::perform(l,r); }
+
+//template <int M, class E, int S> inline
+//typename CNT<adouble>::template Result<Vec<M,E,S> >::Sub
+//operator-(const adouble& l, const Vec<M,E,S>& r)
+//  { return CNT<adouble>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
 
 // v = v-int, int-v // just convert int to v's precision float
 template <int M, class E, int S> inline

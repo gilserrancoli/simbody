@@ -145,7 +145,7 @@ SimTK_SimTKCOMMON_EXPORT explicit String(float r, const char* fmt="%.9g");
 NaN, Inf, or -Inf as appropriate (Matlab compatible). The default format
 specification includes enough digits so that the identical value will be
 recovered if the string is converted back to double. **/
-SimTK_SimTKCOMMON_EXPORT explicit String(double r, const char* fmt="%.17g");
+SimTK_SimTKCOMMON_EXPORT explicit String(adouble r, const char* fmt="%.17g");
 
 /** Format a long double as a printable %String. Nonfinite values are formatted 
 as NaN, Inf, or -Inf as appropriate (Matlab compatible). The default format
@@ -162,7 +162,7 @@ explicit String(std::complex<float> r, const char* fmt="%.9g")
 /** Format a complex\<double> as a printable %String (real,imag) with 
 parentheses and a comma as shown. The format string should be for a single 
 double and will be used twice; the default format is the same as for double. **/
-explicit String(std::complex<double> r, const char* fmt="%.17g")    
+explicit String(std::complex<adouble> r, const char* fmt="%.17g")    
 {   (*this)="(" + String(r.real(),fmt) + "," + String(r.imag(),fmt) + ")"; }
 /** Format a complex\<long double> as a printable %String (real,imag) with 
 parentheses and a comma as shown. The format string should be for a single long
@@ -273,7 +273,7 @@ SimTK_SimTKCOMMON_EXPORT bool tryConvertToFloat(float& out) const;
 NaN, [-]Inf, [-]Infinity (in any case) as well as whatever operator>>() accepts.
 Returns false if the contents of this %String, ignoring leading and trailing
 whitespace, can't be interpreted as a double. **/
-SimTK_SimTKCOMMON_EXPORT bool tryConvertToDouble(double& out) const;
+SimTK_SimTKCOMMON_EXPORT bool tryConvertToDouble(adouble& out) const;
 
 /** Special-purpose method for interpreting this %String as a long double. 
 Recognizes NaN, [-]Inf, [-]Infinity (in any case) as well as whatever 
@@ -415,7 +415,7 @@ bool tryConvertStringTo(const String& value, float& out)
 
 // Specialization to ensure recognition of non-finite values NaN, Inf, etc.
 template <> inline 
-bool tryConvertStringTo(const String& value, double& out)
+bool tryConvertStringTo(const String& value, adouble& out)
 {   return value.tryConvertToDouble(out); }
 
 // Specialization to ensure recognition of non-finite values NaN, Inf, etc.
