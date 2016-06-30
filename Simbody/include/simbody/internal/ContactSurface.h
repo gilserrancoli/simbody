@@ -182,7 +182,7 @@ ContactMaterial& setStiffness(Real stiffness) {
     SimTK_ERRCHK1_ALWAYS(stiffness >= 0, "ContactMaterial::setStiffness()",
         "Stiffness %g is illegal; must be >= 0.", stiffness);
     m_stiffness = stiffness;
-    m_stiffness23 = std::pow(m_stiffness, Real(2./3.));
+    m_stiffness23 = pow(m_stiffness, Real(2./3.));
     return *this;
 }
 

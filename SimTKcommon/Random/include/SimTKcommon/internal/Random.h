@@ -64,11 +64,11 @@ public:
     /**
      * Get the next value in the pseudo-random sequence.
      */
-    Real getValue() const;
+    double getValue() const;
     /**
      * Fill an array with values from the pseudo-random sequence.
      */
-    void fillArray(Real array[], int length) const;
+    void fillArray(double array[], int length) const;
 protected:
     RandomImpl* impl;
     /**
@@ -103,7 +103,7 @@ public:
     /**
      * Create a new random number generator that produces values uniformly distributed between min (inclusive) and max (exclusive).
      */
-    Uniform(Real min, Real max);
+    Uniform(double min, double max);
     /**
      * Get a random integer, uniformly distributed between 0 (inclusive) and max (exclusive).
      */
@@ -111,19 +111,19 @@ public:
     /**
      * Get the lower end of the range in which values are uniformly distributed.
      */
-    Real getMin() const;
+    double getMin() const;
     /**
      * Set the lower end of the range in which values are uniformly distributed.
      */
-    void setMin(Real min);
+    void setMin(double min);
     /**
      * Get the upper end of the range in which values are uniformly distributed.
      */
-    Real getMax() const;
+    double getMax() const;
     /**
      * Set the upper end of the range in which values are uniformly distributed.
      */
-    void setMax(Real max);
+    void setMax(double max);
 protected:
     UniformImpl& getImpl();
     const UniformImpl& getConstImpl() const;
@@ -148,23 +148,23 @@ public:
     /**
      * Create a new random number generator that produces values according to a Gaussian distribution with the specified mean and standard deviation.
      */
-    Gaussian(Real mean, Real stddev);
+    Gaussian(double mean, double stddev);
     /**
      * Get the mean of the Gaussian distribution.
      */
-    Real getMean() const;
+    double getMean() const;
     /**
      * Set the mean of the Gaussian distribution.
      */
-    void setMean(Real mean);
+    void setMean(double mean);
     /**
      * Get the standard deviation of the Gaussian distribution.
      */
-    Real getStdDev() const;
+    double getStdDev() const;
     /**
      * Set the standard deviation of the Gaussian distribution.
      */
-    void setStdDev(Real stddev);
+    void setStdDev(double stddev);
 protected:
     GaussianImpl& getImpl();
     const GaussianImpl& getConstImpl() const;

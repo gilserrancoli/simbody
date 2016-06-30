@@ -390,12 +390,12 @@ public:
     }
 
     // Random numbers
-    static Real randReal() {
+    static double randReal() {
         static Random::Uniform rand(-1,1);
         return rand.getValue();
     }
     static Complex randComplex() {return Complex(randReal(),randReal());}
-    static Conjugate randConjugate() {return Conjugate(randReal(),randReal());}
+    //static Conjugate randConjugate() {return Conjugate(randReal(),randReal());}
     static float randFloat() {return (float)randReal();}
     static double randDouble() {return (double)randReal();}
 

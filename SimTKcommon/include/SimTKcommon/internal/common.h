@@ -1,3 +1,5 @@
+#include <adolc.h>
+
 #ifndef SimTK_SimTKCOMMON_COMMON_H_
 #define SimTK_SimTKCOMMON_COMMON_H_
 
@@ -110,7 +112,7 @@ or any other Index type to an argument expecting a certain Index type. **/
     typedef float SimTK_Real;
 #elif (SimTK_DEFAULT_PRECISION == 2)
 /** This type is for use in C; in C++ use SimTK::Real instead. */
-    typedef double SimTK_Real;
+    typedef adouble SimTK_Real;
 #elif (SimTK_DEFAULT_PRECISION == 4)
 /** This type is for use in C; in C++ use SimTK::Real instead. */
     typedef long double SimTK_Real;
@@ -748,7 +750,7 @@ types to specialize the IsFloatingType struct template for those types. **/
     {typedef TrueType Result; static const bool result = true;}
 
 SimTK_SPECIALIZE_FLOATING_TYPE(float); 
-SimTK_SPECIALIZE_FLOATING_TYPE(double); 
+SimTK_SPECIALIZE_FLOATING_TYPE(adouble); 
 SimTK_SPECIALIZE_FLOATING_TYPE(long double); 
 
 /** Compile-time type test: is this the void type?. **/
@@ -918,7 +920,7 @@ SimTK_NICETYPENAME_LITERAL(unsigned long);
 SimTK_NICETYPENAME_LITERAL(long long);
 SimTK_NICETYPENAME_LITERAL(unsigned long long);
 SimTK_NICETYPENAME_LITERAL(float);           
-SimTK_NICETYPENAME_LITERAL(double); 
+SimTK_NICETYPENAME_LITERAL(adouble); 
 SimTK_NICETYPENAME_LITERAL(long double);
 SimTK_NICETYPENAME_LITERAL(std::string);
 SimTK_NICETYPENAME_LITERAL(std::complex<float>);

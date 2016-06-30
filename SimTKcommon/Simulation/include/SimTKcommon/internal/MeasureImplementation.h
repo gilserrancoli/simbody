@@ -263,15 +263,15 @@ public:
     static void makeZeroLike(const float&, float& zeroValue) {zeroValue=0.f;}
 };
 
-template <> class Measure_Num<double> {
+template <> class Measure_Num<Real> {
 public:
-    typedef double Element;
-    static int size(const double&) {return 1;}
-    static const double& get(const double& v, int i) {assert(i==0); return v;}
-    static double& upd(double& v, int i) {assert(i==0); return v;}
-    static void makeNaNLike(const double&, double& nanValue) 
-    {  nanValue = CNT<double>::getNaN(); }
-    static void makeZeroLike(const double&, double& zeroValue) {zeroValue=0.;}
+    typedef Real Element;
+    static int size(const Real&) {return 1;}
+    static const Real& get(const Real& v, int i) {assert(i==0); return v;}
+    static Real& upd(Real& v, int i) {assert(i==0); return v;}
+    static void makeNaNLike(const Real&, Real& nanValue) 
+    {  nanValue = CNT<Real>::getNaN(); }
+    static void makeZeroLike(const Real&, Real& zeroValue) {zeroValue=0.;}
 };
 
 // We only support stride 1 (densely packed) Vec types.

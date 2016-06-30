@@ -36,7 +36,7 @@ namespace SimTK {
 // the Scalar.h header file for information.
 
 const Real NaN               = NTraits<Real>::getNaN(); 
-const Real Infinity          = NTraits<Real>::getInfinity();
+const double Infinity          = NTraits<double>::getInfinity();
 const Real Eps               = NTraits<Real>::getEps();
 const Real SqrtEps           = NTraits<Real>::getSqrtEps();
 const Real TinyReal          = NTraits<Real>::getTiny(); 
@@ -46,8 +46,8 @@ const Real MostPositiveReal  = NTraits<Real>::getMostPositive();
 const Real LeastNegativeReal = NTraits<Real>::getLeastNegative();
 const Real MostNegativeReal  = NTraits<Real>::getMostNegative();
 
-const int NumDigitsReal = NTraits<Real>::getNumDigits(); 
-const int LosslessNumDigitsReal = NTraits<Real>::getLosslessNumDigits();
+//const int NumDigitsReal = NTraits<Real>::getNumDigits(); 
+//const int LosslessNumDigitsReal = NTraits<Real>::getLosslessNumDigits();
 
 const Real Zero         = NTraits<Real>::getZero();
 const Real One          = NTraits<Real>::getOne(); 

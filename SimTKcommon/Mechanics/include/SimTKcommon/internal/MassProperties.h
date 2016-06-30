@@ -531,13 +531,17 @@ void errChk(const char* methodName) const {
 
     SimTK_ERRCHK3(d >= -SignificantReal, methodName,
         "Diagonals of an Inertia matrix must be nonnegative; got %g,%g,%g.",
-        (double)Ixx,(double)Iyy,(double)Izz);
+        //(double)Ixx,(double)Iyy,(double)Izz);
+		(double)Ixx.getValue(), (double)Iyy.getValue(), (double)Izz.getValue());
+		//Ixx, Iyy, Izz);
 
     // TODO: This is looser than it should be as a workaround for distorted
     // rotation matrices that were produced by an 11,000 body chain that
     // Sam Flores encountered. 
     const P Slop = std::max(d.sum(),P(1))
-                       * std::sqrt(NTraits<P>::getEps());
+                       //* std::sqrt(NTraits<P>::getEps());
+					* sqrt(NTraits<P>::getEps());
+
 
     SimTK_ERRCHK3(   Ixx+Iyy+Slop>=Izz 
                   && Ixx+Izz+Slop>=Iyy 
@@ -545,12 +549,18 @@ void errChk(const char* methodName) const {
         methodName,
         "Diagonals of an Inertia matrix must satisfy the triangle "
         "inequality; got %g,%g,%g.",
-        (double)Ixx,(double)Iyy,(double)Izz);
+        //(double)Ixx,(double)Iyy,(double)Izz);
+		(double)Ixx.getValue(),(double)Iyy.getValue(),(double)Izz.getValue());
+		//Ixx, Iyy, Izz);
+
 
     // Thanks to Paul Mitiguy for this condition on products of inertia.
-    SimTK_ERRCHK(   Ixx+Slop>=std::abs(2*Iyz) 
-                 && Iyy+Slop>=std::abs(2*Ixz)
-                 && Izz+Slop>=std::abs(2*Ixy),
+    //SimTK_ERRCHK(   Ixx+Slop>=std::abs(2*Iyz) 
+    //             && Iyy+Slop>=std::abs(2*Ixz)
+    //             && Izz+Slop>=std::abs(2*Ixy),
+	SimTK_ERRCHK(	Ixx + Slop >= fabs(2 * Iyz)
+				&&	Iyy + Slop >= fabs(2 * Ixz)
+				&&	Izz + Slop >= fabs(2 * Ixy),
         methodName,
         "The magnitude of a product of inertia was too large to be physical.");
 #endif
@@ -1011,7 +1021,12 @@ SpatialInertia_(RealP mass, const Vec3P& com, const UnitInertiaP& gyration)
 
 SpatialInertia_& setMass(RealP mass)
 {   SimTK_ERRCHK1(mass >= 0, "SpatialInertia::setMass()",
-        "Negative mass %g is illegal.", (double)mass);
+        //"Negative mass %g is illegal.", (double)mass);
+		"Negative mass %g is illegal.", (double)mass.getValue());
+		//"Negative mass %g is illegal.", (Real)mass.getValue());
+
+	//"Negative mass %g is illegal.", mass);
+
     m=mass; return *this; }
 SpatialInertia_& setMassCenter(const Vec3P& com)
 {   p=com; return *this;} 
@@ -1386,7 +1401,11 @@ MassProperties_& setMassProperties(const P& m, const Vec<3,P>& com, const Inerti
         unitInertia_OB_B = UnitInertia_<P>(0);
     }
     else {
-        unitInertia_OB_B = UnitInertia_<P>(inertia*(1/m));
+        //unitInertia_OB_B = UnitInertia_<P>(inertia*(1/m.getValue()));
+		//unitInertia_OB_B = UnitInertia_<P>(inertia*(1/m));
+		unitInertia_OB_B = UnitInertia_<P>(inertia/m);
+
+
     }
     return *this;
 }

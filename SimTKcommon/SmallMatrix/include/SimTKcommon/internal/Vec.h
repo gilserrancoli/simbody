@@ -948,12 +948,12 @@ public:
 
     /** For approximate comparisons, the default tolerance to use for a vector is
     the same as its elements' default tolerance. **/
-    static double getDefaultTolerance() {return CNT<ELT>::getDefaultTolerance();}
+    static adouble getDefaultTolerance() {return CNT<ELT>::getDefaultTolerance();}
 
     /** %Test whether this vector is numerically equal to some other vector with
     the same shape, using a specified tolerance. **/
     template <class E2, int RS2>
-    bool isNumericallyEqual(const Vec<M,E2,RS2>& v, double tol) const {
+    bool isNumericallyEqual(const Vec<M,E2,RS2>& v, adouble tol) const {
         for (int i=0; i<M; ++i)
             if (!CNT<ELT>::isNumericallyEqual((*this)[i], v[i], tol))
                 return false;
@@ -965,7 +965,7 @@ public:
     default tolerances of the two objects being compared. **/
     template <class E2, int RS2>
     bool isNumericallyEqual(const Vec<M,E2,RS2>& v) const {
-        const double tol = std::max(getDefaultTolerance(),v.getDefaultTolerance());
+        const adouble tol = std::max(getDefaultTolerance(),v.getDefaultTolerance());
         return isNumericallyEqual(v, tol);
     }
 
@@ -975,7 +975,7 @@ public:
     tolerance for one of its elements). **/
     bool isNumericallyEqual
        (const ELT& e,
-        double     tol = getDefaultTolerance()) const 
+        adouble     tol = getDefaultTolerance()) const 
     {
         for (int i=0; i<M; ++i)
             if (!CNT<ELT>::isNumericallyEqual((*this)[i], e, tol))
@@ -1112,12 +1112,12 @@ typename Vec<M,E,S>::template Result<float>::Mul
 operator*(const float& l, const Vec<M,E,S>& r) {return r*l;}
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Mul
-operator*(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::MulOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Mul
+operator*(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::MulOp::perform(l,r); }
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Mul
-operator*(const double& l, const Vec<M,E,S>& r) {return r*l;}
+typename Vec<M,E,S>::template Result<adouble>::Mul
+operator*(const adouble& l, const Vec<M,E,S>& r) {return r*l;}
 
 template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<long double>::Mul
@@ -1178,13 +1178,13 @@ operator/(const float& l, const Vec<M,E,S>& r)
   { return CNT<float>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Dvd
-operator/(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::DvdOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Dvd
+operator/(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::DvdOp::perform(l,r); }
 template <int M, class E, int S> inline
-typename CNT<double>::template Result<Vec<M,E,S> >::Dvd
-operator/(const double& l, const Vec<M,E,S>& r)
-  { return CNT<double>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
+typename CNT<adouble>::template Result<Vec<M,E,S> >::Dvd
+operator/(const adouble& l, const Vec<M,E,S>& r)
+  { return CNT<adouble>::template Result<Vec<M,E,S> >::DvdOp::perform(l,r); }
 
 template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<long double>::Dvd
@@ -1249,12 +1249,12 @@ typename Vec<M,E,S>::template Result<float>::Add
 operator+(const float& l, const Vec<M,E,S>& r) {return r+l;}
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Add
-operator+(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::AddOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Add
+operator+(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::AddOp::perform(l,r); }
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Add
-operator+(const double& l, const Vec<M,E,S>& r) {return r+l;}
+typename Vec<M,E,S>::template Result<adouble>::Add
+operator+(const adouble& l, const Vec<M,E,S>& r) {return r+l;}
 
 template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<long double>::Add
@@ -1312,13 +1312,13 @@ operator-(const float& l, const Vec<M,E,S>& r)
   { return CNT<float>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
 
 template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Sub
-operator-(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::SubOp::perform(l,r); }
+typename Vec<M,E,S>::template Result<adouble>::Sub
+operator-(const Vec<M,E,S>& l, const adouble& r)
+  { return Vec<M,E,S>::template Result<adouble>::SubOp::perform(l,r); }
 template <int M, class E, int S> inline
-typename CNT<double>::template Result<Vec<M,E,S> >::Sub
-operator-(const double& l, const Vec<M,E,S>& r)
-  { return CNT<double>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
+typename CNT<adouble>::template Result<Vec<M,E,S> >::Sub
+operator-(const adouble& l, const Vec<M,E,S>& r)
+  { return CNT<adouble>::template Result<Vec<M,E,S> >::SubOp::perform(l,r); }
 
 template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<long double>::Sub

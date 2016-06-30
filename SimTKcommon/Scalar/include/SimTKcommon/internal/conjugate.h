@@ -60,6 +60,7 @@
 #include <complex>
 #include <iostream>
 #include <limits>
+#include <adolc.h>
 
 using std::complex;
 
@@ -198,7 +199,7 @@ template <> struct Wider<double,float> {
     typedef complex<double>     WCplx;
     typedef conjugate<double>   WConj;
 };
-template <> struct Wider<double,double> {
+template <> struct Wider<double, double> {
     typedef double              WReal;
     typedef complex<double>     WCplx;
     typedef conjugate<double>   WConj;
@@ -218,7 +219,7 @@ template <> struct Wider<long double,float> {
     typedef complex<long double>    WCplx;
     typedef conjugate<long double>  WConj;
 };
-template <> struct Wider<long double,double> {
+template <> struct Wider<long double, double> {
     typedef long double             WReal;
     typedef complex<long double>    WCplx;
     typedef conjugate<long double>  WConj;
@@ -431,7 +432,7 @@ public:
     /// Implicit conversion to complex<double> when necessary
     /// (costs an actual negation -- yuck!).
     operator complex<double>() const
-      { return complex<double>(re,-negIm); } 
+      { return complex<double>(re,-negIm); }
     
     // Can't defer here by casting to negator<conjugate> -- this must act
     // like a built-in. But ... we can use this as a chance to convert
@@ -509,7 +510,7 @@ public:
         negIm=(re*c.negIm + negIm*c.re); re=r; return *this;
     }
     conjugate& operator*=(const complex<double>& t) {
-        const double r=(re*t.real() + negIm*t.imag()); 
+        const double r=(re*t.real() + negIm*t.imag());
         negIm=(negIm*t.real() - re*t.imag()); re=r; return *this;
     }
 
@@ -533,7 +534,7 @@ public:
     conjugate& operator/=(const complex<float>& c)  { return operator/=(complex<double>(c)); }
 
     const double&               real() const { return re; }
-    double&                     real()       { return re; }
+	double&                     real()       { return re; }
 
     const negator<double>&      imag() const { return reinterpret_cast<const negator<double>&>(negIm); }
     negator<double>&            imag()       { return reinterpret_cast<negator<double>&>(negIm); }
@@ -543,12 +544,12 @@ public:
 
     // Special conjugate methods of use primarily in operator implementations.
     const double& negImag() const { return negIm; }
-    double&       negImag()       { return negIm; }
+	double&       negImag()       { return negIm; }
     bool          isReal()  const { return negIm==0.; }
 
 private:
-    double re;   // The value represented here is re - negIm*i.
-    double negIm;
+	double re;   // The value represented here is re - negIm*i.
+	double negIm;
 };
 
 
@@ -752,7 +753,7 @@ private:
 };
 
 // These definitions had to be deferred until all the specializations have been declared.
-conjugate<float>::conjugate(const conjugate<double>& cd) { 
+conjugate<float>::conjugate(const conjugate<double>& cd) {
     re = float(cd.real()); negIm = float(cd.negImag());
 }
 conjugate<float>::conjugate(const conjugate<long double>& cl) {
@@ -823,26 +824,26 @@ template <class R> inline conjugate<R>                    operator+(const conjug
   { return conjugate<R>(a) += b; }
 template <class R> inline conjugate<long double>          operator+(const conjugate<R>& a, const long double& b)
   { return conjugate<long double>(a) += b; }
-template <class R> inline typename Wider<R,double>::WConj operator+(const conjugate<R>& a, const double&      b)
-  { return typename Wider<R,double>::WConj(a) += b; }
+template <class R> inline typename Wider<R, double>::WConj operator+(const conjugate<R>& a, const double&      b)
+  { return typename Wider<R, double>::WConj(a) += b; }
 
 // conjugate = real + conjugate
 template <class R> inline conjugate<R>                    operator+(const float&       a, const conjugate<R>& b) {return b+a;}
 template <class R> inline conjugate<long double>          operator+(const long double& a, const conjugate<R>& b) {return b+a;}
-template <class R> inline typename Wider<R,double>::WConj operator+(const double&      a, const conjugate<R>& b) {return b+a;}
+template <class R> inline typename Wider<R, double>::WConj operator+(const double&      a, const conjugate<R>& b) {return b+a;}
 
 // conjugate = conjugate * real
 template <class R> inline conjugate<R>                    operator*(const conjugate<R>& a, const float&       b)
   { return conjugate<R>(a) *= b; }
 template <class R> inline conjugate<long double>          operator*(const conjugate<R>& a, const long double& b)
   { return conjugate<long double>(a) *= b; }
-template <class R> inline typename Wider<R,double>::WConj operator*(const conjugate<R>& a, const double&      b)
-  { return typename Wider<R,double>::WConj(a) *= b; }
+template <class R> inline typename Wider<R, double>::WConj operator*(const conjugate<R>& a, const double&      b)
+  { return typename Wider<R, double>::WConj(a) *= b; }
 
 // conjugate = real * conjugate
 template <class R> inline conjugate<R>                    operator*(const float&       a, const conjugate<R>& b) {return b*a;}
 template <class R> inline conjugate<long double>          operator*(const long double& a, const conjugate<R>& b) {return b*a;}
-template <class R> inline typename Wider<R,double>::WConj operator*(const double&      a, const conjugate<R>& b) {return b*a;}
+template <class R> inline typename Wider<R, double>::WConj operator*(const double&      a, const conjugate<R>& b) {return b*a;}
 
 // bool = conjugate==real
 template <class R> inline bool                            operator==(const conjugate<R>& a, const float&       b)
@@ -870,8 +871,8 @@ template <class R> inline conjugate<R>                    operator-(const conjug
   { return conjugate<R>(a) -= b; }
 template <class R> inline conjugate<long double>          operator-(const conjugate<R>& a, const long double& b)
   { return conjugate<long double>(a) -= b; }
-template <class R> inline typename Wider<R,double>::WConj operator-(const conjugate<R>& a, const double&      b)
-  { return typename Wider<R,double>::WConj(a) -= b; }
+template <class R> inline typename Wider<R, double>::WConj operator-(const conjugate<R>& a, const double&      b)
+  { return typename Wider<R, double>::WConj(a) -= b; }
 
 // complex = real - conjugate 
 // This is nice because -conjugate.imag() is free.
@@ -879,16 +880,16 @@ template <class R> inline complex<R>                      operator-(const float&
   { return complex<R>(a-b.real(), -b.imag()); }
 template <class R> inline complex<long double>            operator-(const long double& a, const conjugate<R>& b)
   { return complex<long double>(a-b.real(), -b.imag()); }
-template <class R> inline typename Wider<R,double>::WCplx operator-(const double&      a, const conjugate<R>& b)
-  { return typename Wider<R,double>::WCplx(a-b.real(), -b.imag()); }
+template <class R> inline typename Wider<R, double>::WCplx operator-(const double&      a, const conjugate<R>& b)
+  { return typename Wider<R, double>::WCplx(a-b.real(), -b.imag()); }
 
 // conjugate = conjugate / real
 template <class R> inline conjugate<R>                    operator/(const conjugate<R>& a, const float&       b)
   { return conjugate<R>(a) /= b; }
 template <class R> inline conjugate<long double>          operator/(const conjugate<R>& a, const long double& b)
   { return conjugate<long double>(a) /= b; }
-template <class R> inline typename Wider<R,double>::WConj operator/(const conjugate<R>& a, const double&      b)
-  { return typename Wider<R,double>::WConj(a) /= b; }
+template <class R> inline typename Wider<R, double>::WConj operator/(const conjugate<R>& a, const double&      b)
+  { return typename Wider<R, double>::WConj(a) /= b; }
 
 // complex = real / conjugate 
 // Division by complex is tricky and slow anyway so we'll just convert to complex
@@ -897,8 +898,8 @@ template <class R> inline complex<R>                      operator/(const float&
   { return (R)a/complex<R>(b); }
 template <class R> inline complex<long double>            operator/(const long double& a, const conjugate<R>& b)
   { return a/complex<long double>(b); }
-template <class R> inline typename Wider<R,double>::WCplx operator/(const double&      a, const conjugate<R>& b)
-  { return (typename Wider<R,double>::WReal)a/(typename Wider<R,double>::WCplx(b)); }
+template <class R> inline typename Wider<R, double>::WCplx operator/(const double&      a, const conjugate<R>& b)
+  { return (typename Wider<R, double>::WReal)a/(typename Wider<R, double>::WCplx(b)); }
 
 
 // That's it for (conjugate, real) combinations. Now we need to do all the (conjugate, conjugate) and
