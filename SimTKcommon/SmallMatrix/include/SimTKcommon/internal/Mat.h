@@ -1379,6 +1379,13 @@ operator/(const Mat<M,N,E,CS,RS>& l, const double& r)
 {   return Mat<M,N,E,CS,RS>::template Result<double>::DvdOp::perform(l,r); }
 
 template <int M, int N, class E, int CS, int RS> inline
+typename CNT<double>::template Result<Mat<M, N, E, CS, RS> >::Dvd
+operator/(const double& l, const Mat<M, N, E, CS, RS>& r)
+{
+	return l * r.invert();
+}
+
+template <int M, int N, class E, int CS, int RS> inline
 typename CNT<adouble>::template Result<Mat<M,N,E,CS,RS> >::Dvd
 operator/(const adouble& l, const Mat<M,N,E,CS,RS>& r)
 {   return l * r.invert(); }
@@ -1521,6 +1528,13 @@ template <int M, int N, class E, int CS, int RS> inline
 typename CNT<adouble>::template Result<Mat<M,N,E,CS,RS> >::Sub
 operator-(const adouble& l, const Mat<M,N,E,CS,RS>& r)
   { return CNT<adouble>::template Result<Mat<M,N,E,CS,RS> >::SubOp::perform(l,r); }
+
+template <int M, int N, class E, int CS, int RS> inline
+typename CNT<double>::template Result<Mat<M, N, E, CS, RS> >::Sub
+operator-(const double& l, const Mat<M, N, E, CS, RS>& r)
+{
+	return CNT<double>::template Result<Mat<M, N, E, CS, RS> >::SubOp::perform(l, r);
+}
 
 template <int M, int N, class E, int CS, int RS> inline
 typename Mat<M,N,E,CS,RS>::template Result<long double>::Sub

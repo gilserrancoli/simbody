@@ -814,6 +814,18 @@ SimTK_BNTCMPLX_SPEC(double,float);SimTK_BNTCMPLX_SPEC(double,double);SimTK_BNTCM
 SimTK_BNTCMPLX_SPEC(long double,float);SimTK_BNTCMPLX_SPEC(long double,double);SimTK_BNTCMPLX_SPEC(long double,long double);
 #undef SimTK_BNTCMPLX_SPEC
 
+template<> template<> struct NTraits< complex<float> >::Result<adouble> {
+		typedef Widest< complex<float>, adouble >::Type W;                      
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;         
+};
+template<> template<> struct NTraits< complex<double> >::Result<adouble> {
+		typedef Widest< complex<double>, adouble >::Type W;                      
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;         
+};
+template<> template<> struct NTraits< complex<long double> >::Result<adouble> {
+		typedef Widest< complex<long double>, adouble >::Type W;                      
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;         
+};
 
 // conjugate -- should be instantiated only for float, double, long double.
 template <class R> class NTraits< conjugate<R> > {
@@ -1031,6 +1043,22 @@ SimTK_NTRAITS_CONJ_SPEC(long double,float);SimTK_NTRAITS_CONJ_SPEC(long double,d
 SimTK_NTRAITS_CONJ_SPEC(long double,long double);
 #undef SimTK_NTRAITS_CONJ_SPEC 
 
+template<> template<> struct NTraits< conjugate<float> >::Result<adouble> {
+	
+		typedef conjugate<Widest<float, adouble>::Type> W;                                 
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;               
+};                                                                          
+template<> template<> struct NTraits< conjugate<double> >::Result<adouble> {
+		
+			typedef conjugate<Widest<double, adouble>::Type> W;                                 
+			typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;               
+};
+template<> template<> struct NTraits< conjugate<long double> >::Result<adouble> {
+	
+		typedef conjugate<Widest<long double, adouble>::Type> W;                                 
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;               
+};
+
 
 // Specializations for real numbers.
 // For real scalar R, op result types are:
@@ -1180,9 +1208,9 @@ template<> struct NTraits<R>::Result<float> \
   {typedef Widest<R,float>::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;};    \
 template<> struct NTraits<R>::Result<double> \
   {typedef Widest<R,double>::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;};   \
-	template<> struct NTraits<R>::Result<adouble> \
+template<> struct NTraits<R>::Result<adouble> \
   {typedef Widest<R,adouble>::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;};   \
-	template<> struct NTraits<R>::Result<long double> \
+template<> struct NTraits<R>::Result<long double> \
   {typedef Widest<R,long double>::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;};    \
 template<> struct NTraits<R>::Result<complex<float> > \
   {typedef Widest<R,complex<float> >::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;}; \
