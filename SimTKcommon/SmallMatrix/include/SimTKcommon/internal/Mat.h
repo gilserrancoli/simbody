@@ -1174,9 +1174,10 @@ public:
     bool isNumericallySymmetric(double tol = getDefaultTolerance()) const {
         if (M != N) return false; // handled at compile time
         for (int j=0; j<M; ++j)
-            for (int i=j; i<M; ++i)
-                if (!CNT<ELT>::isNumericallyEqual(elt(j,i), CNT<ELT>::transpose(elt(i,j)), tol))
-                    return false;
+			for (int i = j; i < M; ++i)
+				if (!CNT<ELT>::isNumericallyEqual(elt(j, i), CNT<ELT>::transpose(elt(i, j)), tol))
+					return false;
+		
         return true;
     }
 

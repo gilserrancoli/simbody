@@ -1141,7 +1141,8 @@ public:                                         \
     static bool isNumericallyEqual(const T& t, int i) {return SimTK::isNumericallyEqual(t,i);}                  \
     /* Here the tolerance is given so we don't have to figure it out. */                                                        \
     static bool isNumericallyEqual(const T& t, const float& f, double tol){return SimTK::isNumericallyEqual(t,f,tol);}          \
-    /*static bool isNumericallyEqual(const T& t, const adouble& d, double tol){return SimTK::isNumericallyEqual(t,d,tol);} */        \
+    static bool isNumericallyEqual(const T& t, const double& d, double tol){return SimTK::isNumericallyEqual(t,d,tol);}         \
+	/*static bool isNumericallyEqual(const T& t, const adouble& d, double tol){return SimTK::isNumericallyEqual(t,d,tol);} */        \
     static bool isNumericallyEqual(const T& t, const long double& l, double tol){return SimTK::isNumericallyEqual(t,l,tol);}    \
     static bool isNumericallyEqual(const T& t, int i, double tol){return SimTK::isNumericallyEqual(t,i,tol);}                   \
     /* Carefully calculated constants with convenient memory addresses. */               \
