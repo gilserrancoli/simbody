@@ -460,6 +460,7 @@ inline long long   cube(long long   i) {return i*i*i;}
 
 inline float       cube(const float&       x) {return x*x*x;}
 inline adouble      cube(const adouble&      x) {return x*x*x;}
+inline double      cube(const double&      x) { return x*x*x; }
 inline long double cube(const long double& x) {return x*x*x;}
 
 // To keep this cheap we'll defer getting rid of the negator<> until
@@ -1308,7 +1309,7 @@ Hertzian Elliptical Contact Problems", ASME J. Tribology 128:660, 2006.
 (2) Abramovitz, Stegun, eds. Handbook of Mathematical Functions with
 Formulas, Graphs, and Mathematical Tables, Dover, NY, 1972.
 **/
-inline pair<double,double> 
+inline std::pair<double,double> 
 approxCompleteEllipticIntegralsKE(double m)
 {   return approxCompleteEllipticIntegralsKE_T<double>(m); }
 /** This is the single precision (float) version of the approximate calculation

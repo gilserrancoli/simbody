@@ -304,8 +304,8 @@ public:
 
     virtual Real calcValue(const Vector& x) const override {
         const Real t = x[0]; // we expect just one argument
-        return a*std::sin(w*t + p);
-    }
+        return a*sinf(w*t + p);
+	}
 
     virtual Real calcDerivative(const Array_<int>& derivComponents,
                                 const Vector&      x) const override {
