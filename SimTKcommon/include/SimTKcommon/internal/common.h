@@ -332,6 +332,17 @@ inline bool canStoreInNonnegativeInt(unsigned int  u)  {return canStoreInInt(u);
 inline bool canStoreInNonnegativeInt(unsigned long u)  {return canStoreInInt(u);}
 inline bool canStoreInNonnegativeInt(unsigned long long u) {return canStoreInInt(u);}
 
+
+//template <typename T>
+//inline T sqrt(const T& arg) {
+//	return std::sqrt(arg);
+//}
+//
+//// specialize for adouble
+//template <> inline adouble sqrt(const adouble& arg) {
+//	sqrt(arg);
+//}
+
 // This utility answers the question of whether an integer is suitable as a size
 // limited by the given maximum size. Signed types must be checked for being
 // nonegative; doing that with unsigned types leads to compiler warnings.

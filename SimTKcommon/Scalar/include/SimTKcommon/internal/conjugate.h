@@ -72,6 +72,7 @@ using std::complex;
 
 #ifndef SimTK_MIXED_PRECISION_REAL_COMPLEX_ALREADY_DEFINED
 namespace SimTK {
+
 // complex<float> with int, double, long double
 inline complex<float> operator*(const complex<float>& c,int r) {return c*(float)r;}
 inline complex<float> operator*(int r,const complex<float>& c) {return (float)r*c;}
@@ -86,6 +87,11 @@ inline complex<double> operator/(const complex<float>& c,const double& r)       
 inline complex<double> operator/(const double& r,const complex<float>& c)           {return r/complex<double>(c);}
 inline complex<long double> operator/(const complex<float>& c,const long double& r) {return complex<long double>(c)/r;}
 inline complex<long double> operator/(const long double& r,const complex<float>& c) {return r/complex<long double>(c);}
+
+// new
+//inline complex<double> operator/(const complex<float>& c, const adouble& r) { return complex<double>(c) / r; }
+//inline complex<double> operator/(const adouble& r, const complex<float>& c) { return r / complex<double>(c); }
+//
 
 inline complex<float> operator+(const complex<float>& c,int r) {return c+(float)r;}
 inline complex<float> operator+(int r,const complex<float>& c) {return (float)r+c;}
@@ -116,6 +122,11 @@ inline complex<double> operator/(const float& r,const complex<double>& c)       
 inline complex<long double> operator/(const complex<double>& c,const long double& r){return complex<long double>(c)/r;}
 inline complex<long double> operator/(const long double& r,const complex<double>& c){return r/complex<long double>(c);}
 
+// new
+//inline complex<double> operator/(const complex<double>& c, const adouble& r) { return c / (double)r.getValue(); }
+//inline complex<double> operator/(const adouble& r, const complex<double>& c) { return (double)r.getValue() / c; }
+//
+
 inline complex<double> operator+(const complex<double>& c,int r) {return c+(double)r;}
 inline complex<double> operator+(int r,const complex<double>& c) {return (double)r+c;}
 inline complex<double> operator+(const complex<double>& c,const float& r)           {return c+(double)r;}
@@ -144,6 +155,11 @@ inline complex<long double> operator/(const complex<long double>& c,const float&
 inline complex<long double> operator/(const float& r,const complex<long double>& c) {return (long double)r/c;}
 inline complex<long double> operator/(const complex<long double>& c,const double& r){return c/(long double)r;}
 inline complex<long double> operator/(const double& r,const complex<long double>& c){return (long double)r/c;}
+
+// new
+//inline complex<long double> operator/(const complex<long double>& c, const adouble& r) { return c / (long double)r.getValue(); }
+//inline complex<long double> operator/(const adouble& r, const complex<long double>& c) { return (long double)r.getValue() / c; }
+//
 
 inline complex<long double> operator+(const complex<long double>& c,int r) {return c+(long double)r;}
 inline complex<long double> operator+(int r,const complex<long double>& c) {return (long double)r+c;}

@@ -532,8 +532,8 @@ void errChk(const char* methodName) const {
     SimTK_ERRCHK3(d >= -SignificantReal, methodName,
         "Diagonals of an Inertia matrix must be nonnegative; got %g,%g,%g.",
         //(double)Ixx,(double)Iyy,(double)Izz);
-		(double)Ixx.getValue(), (double)Iyy.getValue(), (double)Izz.getValue());
-		//Ixx, Iyy, Izz);
+		//(double)Ixx.getValue(), (double)Iyy.getValue(), (double)Izz.getValue());
+		Ixx, Iyy, Izz);
 
     // TODO: This is looser than it should be as a workaround for distorted
     // rotation matrices that were produced by an 11,000 body chain that
@@ -550,8 +550,8 @@ void errChk(const char* methodName) const {
         "Diagonals of an Inertia matrix must satisfy the triangle "
         "inequality; got %g,%g,%g.",
         //(double)Ixx,(double)Iyy,(double)Izz);
-		(double)Ixx.getValue(),(double)Iyy.getValue(),(double)Izz.getValue());
-		//Ixx, Iyy, Izz);
+		//(double)Ixx.getValue(),(double)Iyy.getValue(),(double)Izz.getValue());
+		Ixx, Iyy, Izz);
 
 
     // Thanks to Paul Mitiguy for this condition on products of inertia.
@@ -1022,10 +1022,10 @@ SpatialInertia_(RealP mass, const Vec3P& com, const UnitInertiaP& gyration)
 SpatialInertia_& setMass(RealP mass)
 {   SimTK_ERRCHK1(mass >= 0, "SpatialInertia::setMass()",
         //"Negative mass %g is illegal.", (double)mass);
-		"Negative mass %g is illegal.", (double)mass.getValue());
+		//"Negative mass %g is illegal.", (double)mass.getValue());
 		//"Negative mass %g is illegal.", (Real)mass.getValue());
 
-	//"Negative mass %g is illegal.", mass);
+	"Negative mass %g is illegal.", mass);
 
     m=mass; return *this; }
 SpatialInertia_& setMassCenter(const Vec3P& com)

@@ -1653,8 +1653,10 @@ private:
         switch (operation) {
         case Extreme::Maximum: return newVal > oldExtreme;
         case Extreme::Minimum: return newVal < oldExtreme;
-        case Extreme::MaxAbs: return std::abs(newVal) > std::abs(oldExtreme);
-        case Extreme::MinAbs: return std::abs(newVal) < std::abs(oldExtreme);
+        //case Extreme::MaxAbs: return std::abs(newVal) > std::abs(oldExtreme);
+        //case Extreme::MinAbs: return std::abs(newVal) < std::abs(oldExtreme);
+		case Extreme::MaxAbs: return fabs(newVal) > fabs(oldExtreme);
+		case Extreme::MinAbs: return fabs(newVal) < fabs(oldExtreme);
         };
         SimTK_ASSERT1_ALWAYS(!"recognized", 
             "Measure::Extreme::Implementation::isNewExtreme(): "
@@ -1762,7 +1764,9 @@ public:
 
     // Add a new entry to the end of the list, throwing out old entries that
     // aren't needed to answer requests at tEarliest or later.
-    void append(double tEarliest, double tNow, const T& valueNow) {
+    //void append(double tEarliest, double tNow, const T& valueNow) {
+	void append(Real tEarliest, Real tNow, const T& valueNow) {
+
         forgetEntriesMuchOlderThan(tEarliest);
         removeEntriesLaterOrEq(tNow);
         if (full()) 
@@ -1771,7 +1775,7 @@ public:
                                        (int)TooBigFactor * (size()+1)))
             makeLessRoom(); // less than 1/TooBigFactor full
         const int nextFree = getArrayIndex(m_size++);
-        m_times[nextFree] = tNow;
+        m_times[nextFree] = tNow.getValue();
         m_values[nextFree] = valueNow;
         m_maxSize = std::max(m_maxSize, size());
     }
@@ -1793,8 +1797,11 @@ public:
     // needed to answer that earliest request. We won't copy anything at or
     // newer than tNow, and finally we'll push (tNow,valueNow) as the newest
     // entry.
-    void copyInAndUpdate(const Measure_Delay_Buffer& oldBuf, double tEarliest,
-                         double tNow, const T& valueNow) {
+	//new
+    /*void copyInAndUpdate(const Measure_Delay_Buffer& oldBuf, double tEarliest,
+                         double tNow, const T& valueNow) {*/
+	void copyInAndUpdate(const Measure_Delay_Buffer& oldBuf, Real tEarliest,
+		Real tNow, const T& valueNow) {
         // clear all current entries (no heap activity)
         m_oldest = m_size = 0;
 
@@ -1834,7 +1841,7 @@ public:
             m_values[nxt] = oldBuf.getEntryValue(i);
         }
         // Now add the newest entry and set the size.
-        m_times[nxt]  = tNow;
+        m_times[nxt]  = tNow.getValue();
         m_values[nxt] = valueNow;
         assert(nxt+1==newSize);
         m_size = nxt+1;
@@ -1844,12 +1851,16 @@ public:
     // Given the current time and value and the earlier time at which the
     // value is needed, use the buffer and (if necessary) the current value
     // to estimate the delayed value.
-    T calcValueAtTime(double tDelay, double tNow, const T& valueNow) const;
+    //T calcValueAtTime(double tDelay, double tNow, const T& valueNow) const;
+	T calcValueAtTime(Real tDelay, Real tNow, const T& valueNow) const;
+
 
     // Given the current time but *not* the current value of the source measure,
     // provide an estimate for the value at tDelay=tNow-delay using only the 
     // buffer contents and linear interpolation or extrapolation.
-    void calcValueAtTimeLinearOnly(double tDelay, T& delayedValue) const {
+    //void calcValueAtTimeLinearOnly(double tDelay, T& delayedValue) const {
+	void calcValueAtTimeLinearOnly(Real tDelay, T& delayedValue) const {
+
         if (empty()) {
             // Nothing in the buffer?? Shouldn't happen. Return empty Vector
             // or NaN for fixed-size types.
@@ -1915,7 +1926,9 @@ private:
         else return rawIndex % capacity(); }
 
     // Remove all but two entries older than the given time.
-    void forgetEntriesMuchOlderThan(double tEarliest) {
+    //void forgetEntriesMuchOlderThan(double tEarliest) {
+	void forgetEntriesMuchOlderThan(Real tEarliest) {
+
         const int numToRemove = countNumUnneededOldEntries(tEarliest);
         if (numToRemove) {
             m_oldest = getArrayIndex(numToRemove);
@@ -1926,14 +1939,18 @@ private:
     // Count up how many old entries at the beginning of the buffer are so old
     // that they wouldn't be needed to respond to a request at time tEarliest or
     // later. We'll keep no more than two entries earlier than tEarliest.
-    int countNumUnneededOldEntries(double tEarliest) const {
+    //int countNumUnneededOldEntries(double tEarliest) const {
+	int countNumUnneededOldEntries(Real tEarliest) const {
+
         const int firstLater = findFirstLaterOrEq(tEarliest);
         return std::max(0, firstLater-2);
     }
 
     // Given the time now, delete anything at the end of the queue that is
     // at that same time or later.
-    void removeEntriesLaterOrEq(double t) {
+    //void removeEntriesLaterOrEq(double t) {
+	void removeEntriesLaterOrEq(Real t) {
+
         int lastEarlier = findLastEarlier(t);
         m_size = lastEarlier+1;
         if (m_size==0) m_oldest=0; // restart at beginning of array
@@ -1941,7 +1958,9 @@ private:
 
     // Return the entry number (0..size-1) of the first entry whose time 
     // is >= the given time, or -1 if there is none such.
-    int findFirstLaterOrEq(double tDelay) const {
+    //int findFirstLaterOrEq(double tDelay) const {
+	int findFirstLaterOrEq(Real tDelay) const {
+
         for (int i=0; i < size(); ++i)
             if (getEntryTime(i) >= tDelay)
                 return i;
@@ -1950,7 +1969,9 @@ private:
 
     // Return the entry number(size-1..0) of the last entry whose time 
     // is < the given time, or -1 if there is none such.
-    int findLastEarlier(double t) const {
+    //int findLastEarlier(double t) const {
+	int findLastEarlier(Real t) const {
+
         for (int i=size()-1; i>=0; --i)
             if (getEntryTime(i) < t)
                 return i;

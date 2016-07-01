@@ -71,6 +71,7 @@ public:
         condition.
     **/   
     virtual void handleEvent(State& state, Real accuracy, 
+	//virtual void handleEvent(State& state, double accuracy,
                              bool& shouldTerminate) const = 0;
 };
 
@@ -94,6 +95,8 @@ public:
      */
     
     virtual Real getNextEventTime(const State& state, 
+	//virtual double getNextEventTime(const State& state,
+
                                   bool includeCurrentTime) const = 0;
 };
 
@@ -125,6 +128,8 @@ public:
      * Get the value of the event trigger function for a State.
      */  
     virtual Real getValue(const State&) const = 0;
+	//virtual double getValue(const State&) const = 0;
+
     
     /**
      * Get an EventTriggerInfo object which can be used to customize when the
@@ -149,6 +154,8 @@ public:
     class PeriodicEventHandlerImpl;
     ~PeriodicEventHandler();
     Real getNextEventTime(const State& state, bool includeCurrentTime) const override;
+	//double getNextEventTime(const State& state, bool includeCurrentTime) const override;
+
     
     /**
      * Create a PeriodicEventHandler.
@@ -157,16 +164,22 @@ public:
      *     The time interval at which events should occur.
      */
     explicit PeriodicEventHandler(Real eventInterval);
+	//explicit PeriodicEventHandler(double eventInterval);
+
     
     /**
      * Get the time interval at which events occur.
      */   
     Real getEventInterval() const;
+	//double getEventInterval() const;
+
     
     /**
      * Set the time interval at which events occur.
      */   
     void setEventInterval(Real eventInterval);
+	//void setEventInterval(double eventInterval);
+
 private:
     PeriodicEventHandlerImpl* impl;
 };

@@ -962,12 +962,14 @@ TriInFullHelper<S>::createDiagonalView_() {
 #define INSTANTIATE(Helper)         \
 template class Helper< float >;     \
 template class Helper< double >;    \
+template class Helper< adouble >; \
 template class Helper< std::complex<float> >;   \
 template class Helper< std::complex<double> >;  \
 template class Helper< conjugate<float> >;      \
 template class Helper< conjugate<double> >;     \
 template class Helper< negator< float > >;      \
 template class Helper< negator< double > >;     \
+template class Helper< negator< adouble >>; \
 template class Helper< negator< std::complex<float> > >;    \
 template class Helper< negator< std::complex<double> > >;   \
 template class Helper< negator< conjugate<float> > >;       \

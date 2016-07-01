@@ -570,6 +570,25 @@ isNumericallyEqual(int a, const std::complex<P>& b,
                    double tol = RTraits<P>::getDefaultTolerance())
 {   return isNumericallyEqual(b,a,tol); }
 
+//new
+/// %Test whether a complex number is approximately equal to a adouble.
+template <class P> inline bool
+isNumericallyEqual(const std::complex<P>& a, const adouble& b,
+	double tol = RTraits<typename Narrowest<P, adouble>::Precision>::getDefaultTolerance())
+{
+	return isNumericallyEqual(a.real(), b.getValue(), tol) && isNumericallyEqual(a.imag(), 0., tol);
+}
+
+/// %Test whether a complex number is approximately equal to a adouble.
+template <class P> inline bool
+isNumericallyEqual(const adouble& a, const std::complex<P>& b,
+	double tol = RTraits<typename Narrowest<P, adouble>::Precision>::getDefaultTolerance())
+{
+	return isNumericallyEqual(b, a, tol);
+}
+//
+
+
 /// %Test whether a conjugate number is approximately equal to a particular real float.
 template <class P> inline bool 
 isNumericallyEqual(const conjugate<P>& a, const float& b, 
@@ -611,6 +630,22 @@ isNumericallyEqual(int a, const conjugate<P>& b,
                    double tol = RTraits<P>::getDefaultTolerance())
 {   return isNumericallyEqual(b,a,tol); }
 
+//new
+/// %Test whether a conjugate number is approximately equal to a particular real double.
+template <class P> inline bool
+isNumericallyEqual(const conjugate<P>& a, const adouble& b,
+	double tol = RTraits<typename Narrowest<P, adouble>::Precision>::getDefaultTolerance())
+{
+	return isNumericallyEqual(a.real(), b.getValue(), tol) && isNumericallyEqual(a.imag(), 0., tol);
+}
+
+template <class P> inline bool
+isNumericallyEqual(const adouble& a, const conjugate<P>& b,
+	double tol = RTraits<typename Narrowest<P, adouble>::Precision>::getDefaultTolerance())
+{
+	return isNumericallyEqual(b, a, tol);
+}
+
 //@}
 
 
@@ -620,7 +655,7 @@ template <class N> class NTraits {
 
 /// Partial specialization for complex numbers -- underlying real R is
 /// still a template parameter.
-template <class R> class NTraits< complex<R> > {
+template <class R> class NTraits<complex<R> > {
     typedef complex<R>  C;
 public:
     typedef C                T;
@@ -713,9 +748,9 @@ public:
     static ScalarNormSq scalarNormSqr(const T& t)
         { return t.real()*t.real() + t.imag()*t.imag(); }
     static TSqrt    sqrt(const T& t)
-        { return sqrt(t); }
+        { return std::sqrt(t); }
     static TAbs     abs(const T& t)
-        { return fabs(t); } // no, not just sqrt of scalarNormSqr()!
+        { return std::abs(t); } // no, not just sqrt of scalarNormSqr()!
     static const TStandard& standardize(const T& t) {return t;} // already standard
     static TNormalize normalize(const T& t) {return t/abs(t);}
     static TInvert    invert(const T& t)    {return TReal(1)/t;}
@@ -757,6 +792,8 @@ public:
     static bool isNumericallyEqual(const T& a, const long double& b, double tol) {return SimTK::isNumericallyEqual(a,b,tol);}
     static bool isNumericallyEqual(const T& a, int b) {return SimTK::isNumericallyEqual(a,b);}
     static bool isNumericallyEqual(const T& a, int b, double tol) {return SimTK::isNumericallyEqual(a,b,tol);}
+	static bool isNumericallyEqual(const T& a, const adouble& b) { return SimTK::isNumericallyEqual(a, b); }
+	static bool isNumericallyEqual(const T& a, const adouble& b, double tol) { return SimTK::isNumericallyEqual(a, b, tol); }
 
     // The rest are the same as the real equivalents, with zero imaginary part.              
     static const T& getZero()         {static const T c(NTraits<R>::getZero());         return c;}
@@ -807,6 +844,26 @@ SimTK_BNTCMPLX_SPEC(float,float);SimTK_BNTCMPLX_SPEC(float,double);SimTK_BNTCMPL
 SimTK_BNTCMPLX_SPEC(double,float);SimTK_BNTCMPLX_SPEC(double,double);SimTK_BNTCMPLX_SPEC(double,long double);
 SimTK_BNTCMPLX_SPEC(long double,float);SimTK_BNTCMPLX_SPEC(long double,double);SimTK_BNTCMPLX_SPEC(long double,long double);
 #undef SimTK_BNTCMPLX_SPEC
+
+template<> template<> struct NTraits< complex<float> >::Result<adouble> 
+{
+		typedef Widest< complex<float>, adouble >::Type W;                      
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;         
+};
+
+template<> template<> struct NTraits< complex<double> >::Result<adouble>
+{
+	typedef Widest< complex<double>, adouble >::Type W;
+	typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;
+};
+
+template<> template<> struct NTraits< complex<long double> >::Result<adouble>
+{
+	typedef Widest< complex<long double>, adouble >::Type W;
+	typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;
+};
+
+
 
 
 // conjugate -- should be instantiated only for float, double, long double.
@@ -902,9 +959,9 @@ public:
     static ScalarNormSq scalarNormSqr(const T& t)
         { return t.real()*t.real() + t.negImag()*t.negImag(); }
     static TSqrt    sqrt(const T& t)
-        { return sqrt(C(t)); } // cast to complex (one negation)
+        { return std::sqrt(C(t)); } // cast to complex (one negation)
     static TAbs     abs(const T& t)
-        { return abs(t.conj()); }  // no, not just sqrt of scalarNormSqr()!
+        { return std::abs(t.conj()); }  // no, not just sqrt of scalarNormSqr()!
     static TStandard standardize(const T& t)
         { return TStandard(t); }        // i.e., convert to complex
     static TNormalize normalize(const T& t) {return TNormalize(t/abs(t));}
@@ -952,8 +1009,8 @@ public:
     static bool isNumericallyEqual(const T& a, const float& b, double tol) {return SimTK::isNumericallyEqual(a,b,tol);}
 	static bool isNumericallyEqual(const T& a, const double& b) { return SimTK::isNumericallyEqual(a, b); }
 	static bool isNumericallyEqual(const T& a, const double& b, double tol) { return SimTK::isNumericallyEqual(a, b, tol); }
-    static bool isNumericallyEqual(const T& a, const Real& b) {return SimTK::isNumericallyEqual(a,b);}
-    static bool isNumericallyEqual(const T& a, const Real& b, double tol) {return SimTK::isNumericallyEqual(a,b,tol);}
+    static bool isNumericallyEqual(const T& a, const adouble& b) {return SimTK::isNumericallyEqual(a,b);}
+    static bool isNumericallyEqual(const T& a, const adouble& b, double tol) {return SimTK::isNumericallyEqual(a,b,tol);}
     static bool isNumericallyEqual(const T& a, const long double& b) {return SimTK::isNumericallyEqual(a,b);}
     static bool isNumericallyEqual(const T& a, const long double& b, double tol) {return SimTK::isNumericallyEqual(a,b,tol);}
     static bool isNumericallyEqual(const T& a, int b) {return SimTK::isNumericallyEqual(a,b);}
@@ -1017,13 +1074,31 @@ template<> template<> struct NTraits< conjugate<T1> >::Result<conjugate<T2> >{\
     typedef Widest<T1,T2>::Type W; typedef complex<W> WC;              \
     typedef negator<WC> Mul; typedef WC Dvd; typedef conjugate<W> Add; typedef WC Sub;\
 }
-SimTK_NTRAITS_CONJ_SPEC(float,float);SimTK_NTRAITS_CONJ_SPEC(float,double);
-SimTK_NTRAITS_CONJ_SPEC(float,long double);
-SimTK_NTRAITS_CONJ_SPEC(double,float);SimTK_NTRAITS_CONJ_SPEC(double,double);
-SimTK_NTRAITS_CONJ_SPEC(double,long double);
-SimTK_NTRAITS_CONJ_SPEC(long double,float);SimTK_NTRAITS_CONJ_SPEC(long double,double);
-SimTK_NTRAITS_CONJ_SPEC(long double,long double);
+SimTK_NTRAITS_CONJ_SPEC(float,float);SimTK_NTRAITS_CONJ_SPEC(float,double); SimTK_NTRAITS_CONJ_SPEC(float,long double);
+SimTK_NTRAITS_CONJ_SPEC(double,float);SimTK_NTRAITS_CONJ_SPEC(double,double);SimTK_NTRAITS_CONJ_SPEC(double,long double);
+SimTK_NTRAITS_CONJ_SPEC(long double,float);SimTK_NTRAITS_CONJ_SPEC(long double,double);SimTK_NTRAITS_CONJ_SPEC(long double,long double);
 #undef SimTK_NTRAITS_CONJ_SPEC 
+
+template<> template<> struct NTraits< conjugate<float> >::Result<adouble> 
+{
+	
+		typedef conjugate<Widest<float, adouble>::Type> W;                                 
+		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;              
+};
+
+template<> template<> struct NTraits< conjugate<double> >::Result<adouble>
+{
+
+	typedef conjugate<Widest<double, adouble>::Type> W;
+	typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;
+};
+
+template<> template<> struct NTraits< conjugate<long double> >::Result<adouble>
+{
+
+	typedef conjugate<Widest<long double, adouble>::Type> W;
+	typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;
+};
 
 
 // Specializations for real numbers.
@@ -1106,8 +1181,8 @@ public:                                         \
     static       TWithoutNegator& updCastAwayNegatorIfAny(T& t)             \
         {return reinterpret_cast<TWithoutNegator&>(t);}                     \
     static ScalarNormSq scalarNormSqr(const T& t) {return t*t;}             \
-    static TSqrt        sqrt(const T& t) {return sqrt(t);}             \
-    static TAbs         abs(const T& t) {return fabs(t);}               \
+    static TSqrt        sqrt(const T& t) {return std::sqrt(t);}             \
+    static TAbs         abs(const T& t) {return std::abs(t);}               \
     static const TStandard& standardize(const T& t) {return t;}             \
     static TNormalize normalize(const T& t) {return (t>0?T(1):(t<0?T(-1):getNaN()));} \
     static TInvert invert(const T& t) {return T(1)/t;}                      \
@@ -1342,7 +1417,21 @@ template<> struct NTraits<adouble>::Result<double>
 template<> struct NTraits<adouble>::Result<long double> 
 {typedef Widest<adouble, long double>::Type Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; };    
 template<> struct NTraits<adouble>::Result<adouble> 
-{typedef Widest<adouble,adouble>::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;};    
+{typedef Widest<adouble,adouble>::Type Mul;typedef Mul Dvd;typedef Mul Add;typedef Mul Sub;}; 
+
+template<> struct NTraits<adouble>::Result<complex<float> > 
+{typedef Widest<adouble, complex<float> >::Type Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; }; 
+template<> struct NTraits<adouble>::Result<complex<double> > 
+{typedef Widest<adouble, complex<double> >::Type Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; }; 
+template<> struct NTraits<adouble>::Result<complex<long double> > 
+{typedef Widest<adouble, complex<long double> >::Type Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; }; 
+
+template<> struct NTraits<adouble>::Result<conjugate<float> > 
+{typedef conjugate<Widest<adouble, float>::Type> Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; }; 
+template<> struct NTraits<adouble>::Result<conjugate<double> > 
+{typedef conjugate<Widest<adouble, double>::Type> Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; }; 
+template<> struct NTraits<adouble>::Result<conjugate<long double> > 
+{typedef conjugate<Widest<adouble, long double>::Type> Mul; typedef Mul Dvd; typedef Mul Add; typedef Mul Sub; };
 
 /// Specializations of CNT for numeric types.
 template <class R> class CNT< complex<R> > : public NTraits< complex<R> > { };
