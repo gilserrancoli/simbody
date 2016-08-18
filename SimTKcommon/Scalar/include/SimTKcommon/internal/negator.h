@@ -222,6 +222,7 @@ public:
     negator(int                t) {v = -N((typename NTraits<N>::Precision)t);}
     negator(const float&       t) {v = -N((typename NTraits<N>::Precision)t);}
     negator(const double&      t) {v = -N((typename NTraits<N>::Precision)t);}
+	negator(const adouble&      t) { v = -N((typename NTraits<N>::Precision)t.getValue()); }
     negator(const long double& t) {v = -N((typename NTraits<N>::Precision)t);}
 
     // Some of these may not compile if instantiated -- you can't cast a complex

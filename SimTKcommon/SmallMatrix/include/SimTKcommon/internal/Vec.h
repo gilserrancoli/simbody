@@ -1111,13 +1111,13 @@ template <int M, class E, int S> inline
 typename Vec<M,E,S>::template Result<adouble>::Mul
 operator*(const adouble& l, const Vec<M,E,S>& r) {return r*l;}
 
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Mul
-operator*(const Vec<M,E,S>& l, const double& r)
-  { return Vec<M,E,S>::template Result<double>::MulOp::perform(l,r); }
-template <int M, class E, int S> inline
-typename Vec<M,E,S>::template Result<double>::Mul
-operator*(const double& l, const Vec<M,E,S>& r) {return r*l;}
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<double>::Mul
+//operator*(const Vec<M,E,S>& l, const double& r)
+//  { return Vec<M,E,S>::template Result<double>::MulOp::perform(l,r); }
+//template <int M, class E, int S> inline
+//typename Vec<M,E,S>::template Result<double>::Mul
+//operator*(const double& l, const Vec<M,E,S>& r) {return r*l;}
 
 // v = v*int, int*v -- just convert int to v's precision float
 template <int M, class E, int S> inline
