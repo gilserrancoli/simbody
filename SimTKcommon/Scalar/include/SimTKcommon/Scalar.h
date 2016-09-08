@@ -685,6 +685,10 @@ infinite at the bounds.
 Cost: These are very fast, inline methods; the floating point ones use
 just two flops.
 @see clampInPlace() **/
+inline double clamp(double low, double v, double high)
+{
+	return clampInPlace(low, v, high);
+}
 inline adouble clamp(adouble low, adouble v, adouble high) 
 {   return clampInPlace(low,v,high); }
 /** @copydoc SimTK::clamp(double,double,double) **/
@@ -693,6 +697,14 @@ inline float clamp(float low, float v, float high)
 /** @copydoc SimTK::clamp(double,double,double) **/
 inline long double clamp(long double low, long double v, long double high) 
 {   return clampInPlace(low,v,high); }
+
+/** @copydoc SimTK::clamp(double,double,double)
+Takes integer bounds to avoid need for explicit casts. **/
+inline double clamp(int low, double v, int high)
+{
+	return clampInPlace(low, v, high);
+}
+
 
 /** @copydoc SimTK::clamp(double,double,double) 
 Takes integer bounds to avoid need for explicit casts. **/
