@@ -190,8 +190,8 @@ void performQPrecalculations(const SBStateDigest& sbs,
                              Real* qErr,    int nQErr) const
 {
     assert(q && nq==3 && qCache && nQCache==PoolSize && nQErr==0);
-    Vec2::updAs(&qCache[CosQ]) = Vec2(std::cos(q[0]),std::cos(q[1]));
-    Vec2::updAs(&qCache[SinQ]) = Vec2(std::sin(q[0]),std::sin(q[1]));
+    Vec2::updAs(&qCache[CosQ]) = Vec2(cos(q[0]),cos(q[1]));
+    Vec2::updAs(&qCache[SinQ]) = Vec2(sin(q[0]),sin(q[1]));
 }
 
 // TODO: should be using sin/cos cache but isn't.

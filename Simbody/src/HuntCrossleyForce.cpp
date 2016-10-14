@@ -123,7 +123,7 @@ void HuntCrossleyForceImpl::calcForce(const State& state, Vector_<SpatialVec>& b
         const Real k = param1.stiffness*s1;
         const Real c = param1.dissipation*s1 + param2.dissipation*s2;
         const Real radius = contact.getEffectiveRadiusOfCurvature();
-        const Real fH = Real(4./3.)*k*depth*std::sqrt(radius*k*depth);
+        const Real fH = Real(4./3.)*k*depth*sqrt(radius*k*depth);
         pe += Real(2./5.)*fH*depth;
         
         // Calculate the relative velocity of the two bodies at the contact point.

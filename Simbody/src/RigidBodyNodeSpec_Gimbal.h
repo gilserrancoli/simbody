@@ -91,8 +91,8 @@ void setUToFitAngularVelocityImpl
    (const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM,
     Vector& u) const 
 {
-    const Vec2 cosxy(std::cos(q[0]), std::cos(q[1]));
-    const Vec2 sinxy(std::sin(q[0]), std::sin(q[1]));
+    const Vec2 cosxy(cos(q[0]), cos(q[1]));
+    const Vec2 sinxy(sin(q[0]), sin(q[1]));
     const Real oocosy = 1 / cosxy[1];
     const Vec3 qdot = 
         Rotation::convertAngVelInParentToBodyXYZDot(cosxy,sinxy,oocosy,w_FM);
@@ -126,11 +126,11 @@ void performQPrecalculations(const SBStateDigest& sbs,
 {
     assert(q && nq==3 && qCache && nQCache==PoolSize && nQErr==0);
 
-    const Real cy = std::cos(q[1]);
+    const Real cy = cos(q[1]);
     Vec3::updAs(&qCache[CosQ]) =
-        Vec3(std::cos(q[0]), cy, std::cos(q[2]));
+        Vec3(cos(q[0]), cy, cos(q[2]));
     Vec3::updAs(&qCache[SinQ]) =
-        Vec3(std::sin(q[0]), std::sin(q[1]), std::sin(q[2]));
+        Vec3(sin(q[0]), sin(q[1]), sin(q[2]));
     qCache[OOCosQy] = 1/cy; // trouble at 90 or 270 (-90) degrees
 }
 

@@ -103,8 +103,8 @@ public:
                                  Real* qErr,     int nQErr) const
     {
         assert(q && nq==2 && qCache && nQCache==2 && nQErr==0);
-        qCache[CosQ] = std::cos(q[0]);
-        qCache[SinQ] = std::sin(q[0]);
+        qCache[CosQ] = cos(q[0]);
+        qCache[SinQ] = sin(q[0]);
     }
 
     void calcX_FM(const SBStateDigest& sbs,

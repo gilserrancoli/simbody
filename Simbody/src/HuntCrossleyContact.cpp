@@ -53,7 +53,7 @@ class HuntCrossleyContactRep : public ForceSubsystemRep {
 
         SphereParameters(MobilizedBodyIndex b, const Vec3& ctr,
                          const Real& r, const Real& k, const Real& c) 
-          : body(b), center(ctr), radius(r), stiffness(std::pow(k,Real(2./3.))), dissipation(c) { 
+          : body(b), center(ctr), radius(r), stiffness(pow(k,Real(2./3.))), dissipation(c) { 
             assert(b.isValid());
             assert(radius > 0 && stiffness >= 0 && dissipation >= 0);
         }
@@ -70,7 +70,7 @@ class HuntCrossleyContactRep : public ForceSubsystemRep {
 
         HalfspaceParameters(MobilizedBodyIndex b, const UnitVec3& n,
                             const Real& h, const Real& k, const Real& c) 
-          : body(b), normal(n), height(h), stiffness(std::pow(k,Real(2./3.))), dissipation(c) { 
+          : body(b), normal(n), height(h), stiffness(pow(k,Real(2./3.))), dissipation(c) { 
             assert(b.isValid());
             assert(stiffness >= 0 && dissipation >= 0);
         }
@@ -328,7 +328,7 @@ int HuntCrossleyContactRep::realizeSubsystemDynamicsImpl(const State& s) const
             if (dsq >= (r1+r2)*(r1+r2)) continue;           // 4 flops
 
             // There is a collision
-            const Real     d = std::sqrt(dsq);       // distance between the centers (~30 flops)
+            const Real     d = sqrt(dsq);       // distance between the centers (~30 flops)
             const UnitVec3 normal_G(c2c1_G/d, true); // direction from c2 center to c1 center (~12 flops)
 
             processContact((r1*r2)/(r1+r2), // relative curvature, ~12 flops
@@ -458,7 +458,7 @@ void HuntCrossleyContactRep::processContact
     const Real k=k1*squish1; // = k2*squish2   1 flop
     const Real c=c1*squish1 + c2*squish2;   // 3 flops
 
-    const Real fH = Real(4./3.) * k * x * std::sqrt(R*k*x); // ~35 flops
+    const Real fH = Real(4./3.) * k * x * sqrt(R*k*x); // ~35 flops
     const Real f  = fH * (1 + Real(1.5)*c*v);               // 4 flops
 
     // If the resulting force is negative, the multibody system is "yanking"

@@ -262,12 +262,12 @@ public:
         if (worstOne) {
             *worstOne = 0;
             for (int i=0; i<n; ++i) {
-                const EAbs a = std::abs((*this)[i]);
+                const EAbs a = fabs((*this)[i]);
                 if (a > maxabs) maxabs=a, *worstOne=i;
             }
         } else { // don't track the worst element
             for (int i=0; i<n; ++i) {
-                const EAbs a = std::abs((*this)[i]);
+                const EAbs a = fabs((*this)[i]);
                 if (a > maxabs) maxabs=a;
             }
         }

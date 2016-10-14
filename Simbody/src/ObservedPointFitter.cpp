@@ -366,12 +366,12 @@ Real ObservedPointFitter::findBestFit
     Real error;
     optimizer.objectiveFunc(q, true, error);
     if (UseWeighted)
-        return std::sqrt(error - MinimumShift); // already weighted; this makes WRMS
+        return sqrt(error - MinimumShift); // already weighted; this makes WRMS
 
     Real totalWeight = 0;
     for (int i = 0; i < (int)weights.size(); ++i)
         for (int j = 0; j < (int)weights[i].size(); ++j)
             totalWeight += weights[i][j];
 
-    return std::sqrt((error-MinimumShift)/totalWeight);
+    return sqrt((error-MinimumShift)/totalWeight);
 }

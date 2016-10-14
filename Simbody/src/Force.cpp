@@ -653,13 +653,13 @@ calcForce(const State& state, Vector_<SpatialVec>& bodyForces,
         const Real fraw = param.k*x*(1+param.d*qdot); // should be >= 0
         mb.applyOneMobilityForce(state, 
             MobilizerUIndex(m_whichQ), // TODO: only works qdot & u match
-            std::min(Real(0), -fraw), mobilityForces);
+            fmin(Real(0), -fraw), mobilityForces);
     } else if (q < param.qLow) {
         const Real x = q-param.qLow;    // x < 0
         const Real fraw = param.k*x*(1-param.d*qdot); // should be <= 0
         mb.applyOneMobilityForce(state, 
             MobilizerUIndex(m_whichQ), // TODO: only works qdot & u match
-            std::max(Real(0), -fraw), mobilityForces);
+            fmax(Real(0), -fraw), mobilityForces);
     }
 }
 

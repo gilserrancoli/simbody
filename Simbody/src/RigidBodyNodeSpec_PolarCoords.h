@@ -83,7 +83,7 @@ void setQToFitTranslationImpl(const SBStateDigest& sbs, const Vec3& p_FM,
     // If there is no translation worth mentioning, we'll leave the rotational
     // coordinate alone, otherwise rotate so M's x axis is aligned with r.
     if (d >= 4*Eps) {
-        const Real angle = std::atan2(r[1],r[0]);
+        const Real angle = atan2(r[1],r[0]);
         this->toQ(q)[0] = angle;
         this->toQ(q)[1] = d;
     } else
@@ -110,7 +110,7 @@ void setUToFitLinearVelocityImpl
     this->toU(u)[1] = v_FM_M[0]; // velocity along Mx we can represent directly
 
     const Real x = this->fromQ(q)[1]; // translation along Mx (signed)
-    if (std::abs(x) < SignificantReal) {
+    if (fabs(x) < SignificantReal) {
         // No translation worth mentioning; we can only do x velocity, which 
         // we just set above.
         return;
@@ -133,8 +133,8 @@ void performQPrecalculations(const SBStateDigest& sbs,
                              Real* qErr,    int nQErr) const
 {
     assert(q && nq==2 && qCache && nQCache==PoolSize && nQErr==0);
-    qCache[CosQ] = std::cos(q[0]);
-    qCache[SinQ] = std::sin(q[0]);
+    qCache[CosQ] = cos(q[0]);
+    qCache[SinQ] = sin(q[0]);
 }
 
 // This is about 15 flops.

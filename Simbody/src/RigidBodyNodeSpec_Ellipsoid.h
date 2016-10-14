@@ -124,8 +124,8 @@ void setQToFitTranslationImpl(const SBStateDigest& sbs, const Vec3& p_FM, Vector
     if (p_FM.norm() < Eps) return;
 
     const UnitVec3 e(p_FM); // direction from F origin towards desired M origin
-    const Real latitude  = std::atan2(-e[1],e[2]); // project onto F's yz plane
-    const Real longitude = std::atan2( e[0],e[2]); // project onto F's xz plane
+    const Real latitude  = atan2(-e[1],e[2]); // project onto F's yz plane
+    const Real longitude = atan2( e[0],e[2]); // project onto F's xz plane
 
     // Calculate the current value of the spin coordinate (3rd Euler angle).
     Real spin;
@@ -202,11 +202,11 @@ void performQPrecalculations(const SBStateDigest& sbs,
     if (this->getUseEulerAngles(sbs.getModelVars())) {
         assert(q && nq==3 && qCache && nQCache==AnglePoolSize && nQErr==0);
 
-        const Real cy = std::cos(q[1]);
+        const Real cy = cos(q[1]);
         Vec3::updAs(&qCache[AngleCosQ]) =
-            Vec3(std::cos(q[0]), cy, std::cos(q[2]));
+            Vec3(cos(q[0]), cy, cos(q[2]));
         Vec3::updAs(&qCache[AngleSinQ]) =
-            Vec3(std::sin(q[0]), std::sin(q[1]), std::sin(q[2]));
+            Vec3(sin(q[0]), sin(q[1]), sin(q[2]));
         qCache[AngleOOCosQy] = 1/cy; // trouble at 90 degrees
     } else {
         assert(q && nq==4 && qCache && nQCache==QuatPoolSize && 

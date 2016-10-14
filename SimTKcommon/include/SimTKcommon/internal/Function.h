@@ -320,11 +320,16 @@ public:
         case 1: return  a*w*    cos(w*t + p);
         case 2: return -a*w*w*  sin(w*t + p);
         case 3: return -a*w*w*w*cos(w*t + p);
-        default:
-            const Real sign = Real(((order/2) & 0x1) ? -1 : 1);
-            const Real sc   = (order & 0x1) ? cos(w*t+p) : sin(w*t+p);
-            const Real wn   = pow(w, order);
-            return sign*a*wn*sc;
+        //default:
+        //    const Real sign = Real(((order/2) & 0x1) ? -1 : 1);
+        //    const Real sc   = (order & 0x1) ? cos(w*t+p) : sin(w*t+p);
+        //    const Real wn   = pow(w, order);
+        //    return sign*a*wn*sc;
+		default:
+			const double sign = double(((order / 2) & 0x1) ? -1 : 1);
+			const double sc = (order & 0x1) ? std::cos(w.getValue()*t.getValue() + p.getValue()) : std::sin(w.getValue()*t.getValue() + p.getValue());
+			const double wn = std::pow(w.getValue(), order);
+			return sign*a*wn*sc;
         }
     }
 

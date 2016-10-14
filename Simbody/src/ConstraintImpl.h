@@ -1666,7 +1666,7 @@ Real getAxisThickness() const {return axisThickness;}
 
 // Implementation of ContraintRep virtuals
 void realizeTopologyVirtual(State& s) const override {
-    cosineOfDefaultAngle = std::cos(defaultAngle);
+    cosineOfDefaultAngle = cos(defaultAngle);
 }
 
 

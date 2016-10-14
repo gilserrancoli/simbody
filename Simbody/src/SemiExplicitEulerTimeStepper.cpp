@@ -979,7 +979,7 @@ calcCoefficientsOfFriction(const State& s, const Vector& verr) {
         Real slipSpeed = 0;
         for (unsigned j=0; j < rt.m_Fk.size(); ++j)
             slipSpeed += square(verr[rt.m_Fk[j]]);
-        slipSpeed = std::sqrt(slipSpeed);
+        slipSpeed = sqrt(slipSpeed);
         const UnilateralContact& uni = matter.getUnilateralContact(rt.m_ucx);
         rt.m_effMu = uni.calcEffectiveCOF(s, 
                         getDefaultFrictionTransitionVelocity(),
@@ -994,7 +994,7 @@ calcCoefficientsOfFriction(const State& s, const Vector& verr) {
         Real slipSpeed = 0;
         for (unsigned j=0; j < rt.m_Fk.size(); ++j)
             slipSpeed += square(verr[rt.m_Fk[j]]);
-        slipSpeed = std::sqrt(slipSpeed);
+        slipSpeed = sqrt(slipSpeed);
         const StateLimitedFriction& fric = 
             matter.getStateLimitedFriction(rt.m_slfx);
         rt.m_effMu = fric.calcEffectiveCOF(s, 
@@ -1102,7 +1102,7 @@ applyPoissonRestitutionIfAny(const State& s, Vector& impulse,
         const ImpulseSolver::UniContactRT& rt = m_uniContact[i];
         const MultiplierIndex              mx = rt.m_Nk;
         Real& pi = impulse[mx];
-        if (rt.m_effCOR > 0 && std::abs(pi) >= SignificantReal) {
+        if (rt.m_effCOR > 0 && fabs(pi) >= SignificantReal) {
             pi *= (1+rt.m_effCOR);
             anyRestitution = true;
             expanders.push_back(i);
@@ -1133,7 +1133,7 @@ calcExpansionImpulseIfAny(const State& s, const Array_<int>& impacters,
         const ImpulseSolver::UniContactRT& rt = m_uniContact[which];
         const MultiplierIndex              mz = rt.m_Nk;
         const Real& pi = compressionImpulse[mz];
-        if (rt.m_effCOR > 0 && std::abs(pi) >= SignificantReal) {
+        if (rt.m_effCOR > 0 && fabs(pi) >= SignificantReal) {
             expansionImpulse[mz] = pi*rt.m_effCOR;
             anyRestitution = true;
             expanders.push_back(impacters[i]);

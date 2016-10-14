@@ -187,7 +187,7 @@ boundVector(Real maxLen, const Array_<MultiplierIndex>& IV, Vector& pi) {
     for (unsigned i=0; i<IV.size(); ++i) piNorm2 += square(pi[IV[i]]);
     if (piNorm2 <= maxLen2) 
         return ImpulseSolver::Rolling;
-    const Real scale = std::sqrt(maxLen2/piNorm2); // 0 <= scale < 1
+    const Real scale = sqrt(maxLen2/piNorm2); // 0 <= scale < 1
     for (unsigned i=0; i<IV.size(); ++i) pi[IV[i]] *= scale;
     return ImpulseSolver::Sliding;
 }
@@ -208,7 +208,7 @@ boundFriction(Real mu,
     const Real mu2N2 = mu*mu*N2;
     if (F2 <= mu2N2) 
         return ImpulseSolver::Rolling;
-    const Real scale = std::sqrt(mu2N2/F2); // 0 <= scale < 1
+    const Real scale = sqrt(mu2N2/F2); // 0 <= scale < 1
     for (unsigned i=0; i<IF.size(); ++i) pi[IF[i]] *= scale;
     return ImpulseSolver::Sliding;
 }
@@ -433,7 +433,7 @@ solve(int                                 phase,
             doRowSums(participating,Fk,A,D,pi,rowSums);
             const Real er2=doUpdates(Fk,A,D,verrStart,sor,rowSums,pi);
             sum2all += er2;
-            Real N = std::abs(pi[Nk] + piExpand[Nk]);
+            Real N = fabs(pi[Nk] + piExpand[Nk]);
             rt.m_frictionCond=boundVector(rt.m_effMu*N, Fk, pi);
             if (rt.m_frictionCond==Rolling)
                 sum2enf += er2;
@@ -479,15 +479,15 @@ solve(int                                 phase,
             if (rt.m_frictionCond==Rolling)
                 sum2enf += localEr2;
         }
-        normRMSall = std::sqrt(sum2all/p);
-        normRMSenf = std::sqrt(sum2enf/p);
+        normRMSall = sqrt(sum2all/p);
+        normRMSenf = sqrt(sum2enf/p);
 
         const Real rate = normRMSenf/prevNormRMSenf;
 
         if (rate > 1) {
             SimTK_DEBUG3("GOT WORSE@%d: sor=%g rate=%g\n", its, sor, rate);
             if (sor > .1)
-                sor = std::max(.8*sor, .1);
+                sor = fmax(.8*sor, .1);
         } 
 
         #ifndef NDEBUG
@@ -584,13 +584,13 @@ solveBilateral
             sum2enf += localEr2;
         }
 
-        normRMSenf = std::sqrt(sum2enf/p);
+        normRMSenf = sqrt(sum2enf/p);
         const Real rate = normRMSenf/prevNormRMSenf;
 
         if (rate > 1) {
             SimTK_DEBUG3("GOT WORSE@%d: sor=%g rate=%g\n", its, sor, rate);
             if (sor > .1)
-                sor = std::max(.8*sor, .1);
+                sor = fmax(.8*sor, .1);
         } 
 
         #ifndef NDEBUG

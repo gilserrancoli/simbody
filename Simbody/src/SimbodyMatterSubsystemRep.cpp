@@ -3574,7 +3574,7 @@ solveForConstraintImpulses(const State&     state,
     calcGMInvGt(state, GMInvGt);
     // MUST DUPLICATE SIMBODY'S METHOD HERE:
     const Real conditioningTol = GMInvGt.nrow() 
-                                    * SqrtEps*std::sqrt(SqrtEps); // Eps^(3/4)
+                                    * SqrtEps*sqrt(SqrtEps); // Eps^(3/4)
     FactorQTZ qtz(GMInvGt, conditioningTol); 
     qtz.solve(deltaV, impulse);
 }
@@ -3921,7 +3921,7 @@ void SimbodyMatterSubsystemRep::enforcePositionConstraints
     // We only fail if we can't achieve consAccuracy, but while we're
     // solving we'll see if we can get consAccuracyToTryFor.
     const Real consAccuracyToTryFor = 
-        std::max(Real(0.1)*consAccuracy, SignificantReal);
+        fmax(Real(0.1)*consAccuracy, SignificantReal);
 
     // Conditioning tolerance. This determines when we'll drop a 
     // constraint. 
@@ -4193,7 +4193,7 @@ int SimbodyMatterSubsystemRep::projectQ
     // we manage to reach consAccuracy.
     const Real overshootFactor = opts.getOvershootFactor();
     const Real consAccuracyToTryFor = 
-        std::max(overshootFactor*consAccuracy, SignificantReal);
+        fmax(overshootFactor*consAccuracy, SignificantReal);
 
     // Check whether we should stop if we see the solution diverging
     // which should not happen when we're in the neighborhood of a solution
@@ -4547,7 +4547,7 @@ void SimbodyMatterSubsystemRep::enforceVelocityConstraints
     // We only fail if we can't achieve consAccuracy, but while we're
     // solving we'll see if we can get consAccuracyToTryFor.
     const Real consAccuracyToTryFor = 
-        std::max(Real(0.1)*consAccuracy, SignificantReal);
+        fmax(Real(0.1)*consAccuracy, SignificantReal);
 
     // Conditioning tolerance. This determines when we'll drop a 
     // constraint. 
@@ -4736,7 +4736,7 @@ int SimbodyMatterSubsystemRep::projectU
     // we manage to reach consAccuracy.
     const Real overshootFactor = opts.getOvershootFactor();
     const Real consAccuracyToTryFor = 
-        std::max(overshootFactor*consAccuracy, SignificantReal);
+       fmax(overshootFactor*consAccuracy, SignificantReal);
 
     // Check whether we should stop if we see the solution diverging
     // which should not happen when we're in the neighborhood of a solution
@@ -4778,7 +4778,7 @@ int SimbodyMatterSubsystemRep::projectU
     const Vector& uWeights = getUWeights(s); // 1/unit change (Wu)
     Vector uRelScale(nu);
     for (int i=0; i<nu; ++i) {
-        const Real ui = std::abs(u[i]);
+        const Real ui = fabs(u[i]);
         const Real wi = uWeights[i];
         uRelScale[i] = ui*wi > 1 ? ui : 1/wi; // max(unit error, u) (1/Eu)
     }
@@ -5115,7 +5115,7 @@ void SimbodyMatterSubsystemRep::calcLoopForwardDynamicsOperator
     // constraints.
     const Real conditioningTol = m 
         //* SignificantReal;
-        * SqrtEps*std::sqrt(SqrtEps); // Eps^(3/4)
+        * SqrtEps*sqrt(SqrtEps); // Eps^(3/4)
 
     // Calculate multipliers lambda as
     //     (G M^-1 ~G) lambda = aerr

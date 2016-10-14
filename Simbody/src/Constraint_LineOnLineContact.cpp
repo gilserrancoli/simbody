@@ -362,7 +362,7 @@ calcPositionInfo(const State& state,
     // Use whichever of the outward normal directions gives a clearer signal.
     // We want w point out from F or into B.          ~12 flops
     const Real wsf = ~wraw_A*sf_A, wsb = ~wraw_A*sb_A;
-    if (std::abs(wsf) > std::abs(wsb)) pc.sense = (wsf >= 0 ?  1 : -1);
+    if (fabs(wsf) > fabs(wsb)) pc.sense = (wsf >= 0 ?  1 : -1);
     else                               pc.sense = (wsb >= 0 ? -1 :  1);
 
     pc.w_A = pc.sense * wraw_A;                     //  3 flops

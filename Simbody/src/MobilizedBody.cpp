@@ -2919,7 +2919,7 @@ setQToFitTransform(const State& state, const Transform& X_FM,
             Transform transform = impl.calcMobilizerTransformFromQ
                                             (state, params.size(), &params[0]);
             f = (transform.p()-X_FM.p()).norm();
-            f += std::abs((~transform.R()*X_FM.R()).convertRotationToAngleAxis()[0]);
+            f += fabs((~transform.R()*X_FM.R()).convertRotationToAngleAxis()[0]);
             return 0;
         }
     private:

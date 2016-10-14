@@ -852,7 +852,7 @@ solveForPathPoints(const State& state, const PathInstanceInfo& instInfo,
 
         ppe.JInv.solve(ppe.err, dx);
 
-        const Real dxnorm = std::sqrt(dx.normSqr()/ppe.x.size()); // rms
+        const Real dxnorm = sqrt(dx.normSqr()/ppe.x.size()); // rms
         cout << "|dx| = " << dxnorm << endl;
         if (dxnorm > Real(.99)*dxnormPrev) {
            std::cout << "\nPATH stalled in " 
@@ -878,7 +878,7 @@ solveForPathPoints(const State& state, const PathInstanceInfo& instInfo,
         //cout << "step size=" << lam << endl;
 
         if (lam == nextlam)
-            nextlam = std::min(2*lam, Real(1));
+            nextlam = fmin(2*lam, Real(1));
 
         dxnormPrev = dxnorm;
     }
@@ -1516,8 +1516,8 @@ calcSurfacePathErrorJacobianAnalytically
                gQ = surface.calcSurfaceGradient(xQ);
     const Mat33 HP = surface.calcSurfaceHessian(xP),
                 HQ = surface.calcSurfaceHessian(xQ);
-    const Real oojP = std::abs(jP) < SqrtEps ? Real(0) : 1/jP, 
-               oojQ = std::abs(jQ) < SqrtEps ? Real(0) : 1/jQ;
+    const Real oojP = fabs(jP) < SqrtEps ? Real(0) : 1/jP, 
+               oojQ = fabs(jQ) < SqrtEps ? Real(0) : 1/jQ;
     const Mat33 DnPDxP = (Mat33(1) - nP*~nP)*HP / (~gP*nP),
                 DnQDxQ = (Mat33(1) - nQ*~nQ)*HQ / (~gQ*nQ);
     const Mat33 DbPDxP = -tauP*nP*~tP - (oojP*jdP*tP + muP*nP)*~bP,

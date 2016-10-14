@@ -806,7 +806,7 @@ Real Assembler::calcCurrentErrorNorm() const {
     if (nc == 0) return 0;
     const Vector errs = asmSys->calcCurrentErrors();
     return useRMSErrorNorm
-        ? std::sqrt(~errs*errs / errs.size())   // RMS
+        ? sqrt(~errs*errs / errs.size())   // RMS
         : max(abs(errs));                       // infinity norm
 }
 
