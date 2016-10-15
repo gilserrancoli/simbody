@@ -95,7 +95,7 @@ bool ContactGeometry::Sphere::Impl::intersectsRay
         Real d = b*b - c;
         if (d < 0)
           return false;
-        Real root = std::sqrt(d);
+        Real root = sqrt(d);
         distance = b - root;
       }
     else {
@@ -104,7 +104,7 @@ bool ContactGeometry::Sphere::Impl::intersectsRay
         Real d = b*b - c;
         if (d < 0)
           return false;
-        distance = b + std::sqrt(d);
+        distance = b + sqrt(d);
       }
     normal = UnitVec3(origin+distance*direction);
     return true;
@@ -162,7 +162,7 @@ static void setGeodesicToArc(const UnitVec3& e1, const UnitVec3& e2,
     const Real L = R*angle*orientation;
 
     // Increment of phi in loop.
-    const Real deltaPhi = std::abs(angle / Real(numGeodesicSamples-1));
+    const Real deltaPhi = fabs(angle / Real(numGeodesicSamples-1));
 
     const Real k = 1/R; // curvature
     for (int i = 0; i < numGeodesicSamples; ++i){
@@ -298,7 +298,7 @@ void ContactGeometry::Sphere::Impl::shootGeodesicInDirectionUntilPlaneHitAnalyti
     // for sphere plane offset is zero, therefore pt_on_plane = 0
     Real a = ~e_OP*terminatingPlane.getNormal();
     Real b = ~tP*terminatingPlane.getNormal();
-    Real alpha = std::atan2(a,b);
+    Real alpha = atan2(a,b);
     Real angle = (alpha > 0 ? Pi-alpha : -alpha);
 //    std::cout << "a=" << a << ", b=" << b << ", alpha = " << alpha << std::endl;
 

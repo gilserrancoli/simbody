@@ -67,7 +67,7 @@ typedef float realtype;
 
 #elif defined(SUNDIALS_DOUBLE_PRECISION)
 
-typedef double realtype;
+typedef adouble realtype;
 # define RCONST(x) x
 # define BIG_REAL DBL_MAX
 # define SMALL_REAL DBL_MIN

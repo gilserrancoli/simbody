@@ -297,12 +297,12 @@ public:
         if (worstOne) {
             *worstOne = 0;
             for (int i=0; i<n; ++i) {
-                const EAbs wv = std::abs(w[i]*(*this)[i]);
+                const EAbs wv = fabs(w[i]*(*this)[i]);
                 if (wv > maxabs) maxabs=wv, *worstOne=i;
             }
         } else { // don't track the worst element
             for (int i=0; i<n; ++i) {
-                const EAbs wv = std::abs(w[i]*(*this)[i]);
+                const EAbs wv = fabs(w[i]*(*this)[i]);
                 if (wv > maxabs) maxabs=wv;
             }
         }

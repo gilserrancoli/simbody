@@ -666,9 +666,9 @@ getFdF(const Vec2& aXY, int wantLevel, PatchHint& hint) const {
     // can do is supply the current index from the hint.
     int pXidx = h.x0, pYidx = h.y0;
     if (_hasRegularSpacing) {
-        pXidx = clamp(0, (int)std::floor((h.xy[0]-_x[0])/_spacing[0]),
+        pXidx = clamp(0, (int)std::floor((h.xy[0].getValue()-_x[0].getValue())/_spacing[0].getValue()),
                       _x.size()-2); // can't be last index
-        pYidx = clamp(0, (int)std::floor((h.xy[1]-_y[0])/_spacing[1]),
+        pYidx = clamp(0, (int)std::floor((h.xy[1].getValue() -_y[0].getValue())/_spacing[1].getValue()),
                       _y.size()-2);
     }
 
@@ -1024,7 +1024,7 @@ createPolygonalMesh(Real resolution, PolygonalMesh& mesh) const {
     const int nxpatch = _x.size()-1;
     const int nypatch = _y.size()-1;
     // n is the number of subdivisions per patch
-    const int n = std::max(1 +  (int)(resolution+.5), 1); // round
+    const int n = fmax(1 +  (int)(resolution.getValue()+.5), 1); // round
     const int nx = nxpatch*n + 1; // number of vertices along each row
     const int ny = nypatch*n + 1;
     // These will alternately serve as previous and current.

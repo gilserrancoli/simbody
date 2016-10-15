@@ -213,15 +213,15 @@ findParaboloidAtPointWithNormal(const Vec3& Q, const UnitVec3& nn,
     // I *believe* R==S -> T==0 but I don't have a proof.
     Real kmax2, kmin2; // squared curvatures of ellipse
     UnitVec3 dmax;
-    if (std::abs(R-S) < SignificantReal*std::max(R,S)) {
+    if (fabs(R-S) < SignificantReal*std::max(R,S)) {
         kmax2 = kmin2 = (R+S)/2;
         dmax = tu;
-    } else if (std::abs(T) < SignificantReal) {
+    } else if (fabs(T) < SignificantReal) {
         if (R < S) kmax2=S, dmax=tv, kmin2=R;
         else       kmax2=R, dmax=tu, kmin2=S;
     } else { // T,R-S both nonzero
         Real tan2t = T/(R-S);       // ~20 flops
-        Real cos2t = 1/std::sqrt(1 + square(tan2t)); // ~40 flops
+        Real cos2t = 1/sqrt(1 + square(tan2t)); // ~40 flops
         Real sin2t = tan2t*cos2t;   //   1 flop
         // 11 flops here
         Real term = R*cos2t-S*cos2t+T*sin2t;
@@ -330,7 +330,7 @@ bool ContactGeometry::Ellipsoid::Impl::intersectsRay
         Real d = b*b - a*c;
         if (d < 0)
           return false;
-        distance = (b - std::sqrt(d))/a;
+        distance = (b - sqrt(d))/a;
     }
     else {
         // Ray origin is inside ellipsoid.
@@ -339,7 +339,7 @@ bool ContactGeometry::Ellipsoid::Impl::intersectsRay
         Real d = b*b - a*c;
         if (d < 0)
           return false;
-        distance = (b + std::sqrt(d))/a;
+        distance = (b + sqrt(d))/a;
     }
     Vec3 pos = origin+distance*direction;
     normal = UnitVec3(pos[0], pos[1]*sy, pos[2]*sz);

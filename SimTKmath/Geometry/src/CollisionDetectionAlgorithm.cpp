@@ -182,7 +182,7 @@ void CollisionDetectionAlgorithm::HalfSpaceEllipsoid::processObjects
     const Transform trans = (~transform1)*transform2;
     Vec3 normal = ~trans.R()*Vec3(-1, 0, 0);
     Vec3 location(normal[0]*r2[0], normal[1]*r2[1], normal[2]*r2[2]);
-    location /= -std::sqrt(  normal[0]*location[0]
+    location /= -sqrt(  normal[0]*location[0]
                            + normal[1]*location[1]
                            + normal[2]*location[2]);
     Real depth = (trans*location)[0];
@@ -202,8 +202,8 @@ void CollisionDetectionAlgorithm::HalfSpaceEllipsoid::processObjects
         Vec3 contactPoint = transform2*(location+(depth/2)*normal);
         contacts.push_back(PointContact(index1, index2, contactPoint, 
                                         contactNormal, 
-                                        1/std::sqrt(eigenvalues[0].real()), 
-                                        1/std::sqrt(eigenvalues[1].real()), 
+                                        1/sqrt(eigenvalues[0].real()), 
+                                        1/sqrt(eigenvalues[1].real()), 
                                         depth));
     }
 }
@@ -676,7 +676,7 @@ void CollisionDetectionAlgorithm::ConvexConvex::addContact
     while (err.norm() > Real(1e-12)) {
         Mat66 J = computeJacobian(object1, object2, point1, point2, transform12);
         FactorQTZ qtz;
-        qtz.factor(Matrix(J), Real(1e-6));
+        qtz.factor(Matrix(J), double(1e-6));
         Vector deltaVec(6);
         qtz.solve(Vector(err), deltaVec);
         Vec6 delta(&deltaVec[0]);

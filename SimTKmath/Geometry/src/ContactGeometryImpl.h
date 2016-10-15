@@ -204,7 +204,7 @@ public:
     // Calculate a unit tangent vector based on angle theta measured from the
     // binormal axis of the given rotation matrix
     static UnitVec3 calcUnitTangentVec(const Real& theta, const Rotation& R_GS) {
-        UnitVec3 tR_S(std::sin(theta), std::cos(theta), 0);
+        UnitVec3 tR_S(sin(theta), cos(theta), 0);
         return R_GS*tR_S;
     }
 

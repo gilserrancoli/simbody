@@ -318,9 +318,9 @@ nvmaxnorm_SimTK(N_Vector nvx) {
 
     // TODO: should be a built-in Vector operation for this
     const Real* xp = x.getContiguousScalarData();
-    Real maxabs = std::abs(xp[0]);
+    Real maxabs = fabs(xp[0]);
     for (int i=1; i<sz; ++i) {
-        const Real absval = std::abs(xp[i]);
+        const Real absval = fabs(xp[i]);
         if (absval > maxabs) maxabs=absval;
     }
     return maxabs;
@@ -346,7 +346,7 @@ nvwrmsnorm_SimTK(N_Vector nvx, N_Vector nvw) {
         const Real xw = xp[i]*wp[i];
         sumsq += xw*xw;
     }
-    return std::sqrt( sumsq / sz );
+    return sqrt( sumsq / sz );
 }
 
 // N_VWrmsNormMask
@@ -372,7 +372,7 @@ nvwrmsnormmask_SimTK(N_Vector nvx, N_Vector nvw, N_Vector nvid) {
             const Real xw = xp[i]*wp[i];
             sumsq += xw*xw;
         }
-    return std::sqrt( sumsq / sz );
+    return sqrt( sumsq / sz );
 }
 
 // N_VMin
@@ -413,7 +413,7 @@ nvwl2norm_SimTK(N_Vector nvx, N_Vector nvw) {
         const Real xw = xp[i]*wp[i];
         sumsq += xw*xw;
     }
-    return std::sqrt(sumsq);
+    return sqrt(sumsq);
 }
 
 // N_VL1Norm
@@ -430,7 +430,7 @@ nvl1norm_SimTK(N_Vector nvx) {
 
     Real sumabs = 0;
     for (int i=0; i<sz; ++i) {
-        sumabs += std::abs(xp[i]);
+        sumabs += fabs(xp[i]);
     }
     return sumabs;
 }
@@ -450,7 +450,7 @@ nvcompare_SimTK(realtype c, N_Vector nvx, N_Vector nvz) {
     Real*       zp = z.updContiguousScalarData();
 
     for (int i=0; i<sz; ++i)
-        zp[i] = Real(std::abs(xp[i]) >= c ? 1 : 0);
+        zp[i] = Real(fabs(xp[i]) >= c ? 1 : 0);
 }
 
 // N_VInvTest

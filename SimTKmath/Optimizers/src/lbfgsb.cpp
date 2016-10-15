@@ -340,7 +340,7 @@ int *col, Real *v, Real *p, int *info)
 /*         solve D^(1/2)p1=v1. */
     i__1 = *col;
     for (i__ = 1; i__ <= i__1; ++i__) {
-    p[i__] = v[i__] / std::sqrt(sy[i__ + i__ * sy_dim1]);
+    p[i__] = v[i__] / sqrt(sy[i__ + i__ * sy_dim1]);
 /* L30: */
     }
 /*     PART II: solve [ -D^(1/2)   D^(-1/2)*L'  ] [ p1 ] = [ p1 ] */
@@ -354,7 +354,7 @@ int *col, Real *v, Real *p, int *info)
 /*                 =-D^(-1/2)p1+D^(-1)L'p2. */
     i__1 = *col;
     for (i__ = 1; i__ <= i__1; ++i__) {
-    p[i__] = -p[i__] / std::sqrt(sy[i__ + i__ * sy_dim1]);
+    p[i__] = -p[i__] / sqrt(sy[i__ + i__ * sy_dim1]);
 /* L40: */
     }
     i__1 = *col;
