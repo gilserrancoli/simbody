@@ -190,7 +190,7 @@ findParaboloidAtPointWithNormal(const Vec3& Q, const UnitVec3& nn,
                C = square(curvatures[2]);
 
     // Sanity checks in debug.
-    SimTK_ERRCHK(std::abs(A*Q[0]*Q[0]+B*Q[1]*Q[1]+C*Q[2]*Q[2]-1) < SqrtEps,
+    SimTK_ERRCHK(fabs(A*Q[0]*Q[0]+B*Q[1]*Q[1]+C*Q[2]*Q[2]-1) < SqrtEps,
         "ContactGeometry::Ellipsoid::findParaboloidAtPointWithNormal()",
         "The given point was not on the surface of the ellipsoid.");
     SimTK_ERRCHK((nn-findUnitNormalAtPoint(Q)).normSqr() < SqrtEps,

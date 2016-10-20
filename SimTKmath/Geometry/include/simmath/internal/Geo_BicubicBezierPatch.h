@@ -283,7 +283,7 @@ void split(RealP u, RealP w, BicubicBezierPatch_<P>& patch00,
     SimTK_ERRCHK2((tol <= u && u <= 1-tol) && (tol <= w && w <= 1-tol), 
         "Geo::BicubicBezierPatch::split()",
         "Can't split patch at parametric point u,w=%g,%g; it is either out of"
-        " range or too close to an edge.", (double)u, (double)w);
+        " range or too close to an edge.", (double)u.getValue(), (double)w.getValue());
 
     BicubicBezierPatch_<P> patch0, patch1; // results of the first split
 

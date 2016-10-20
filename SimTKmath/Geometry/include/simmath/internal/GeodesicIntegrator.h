@@ -244,7 +244,7 @@ public:
     template <int Z> static Real calcNormInf(const Vec<Z>& v) {
         Real norm = 0;
         for (int i=0; i < Z; ++i) {
-            Real aval = std::abs(v[i]);
+            Real aval = fabs(v[i]);
             if (aval > norm) norm = aval;
         }
         return norm;
@@ -323,7 +323,7 @@ GeodesicIntegrator<Eqn>::takeOneStep(Real tStop) {
                 " h=%g; can't go any smaller.", errNorm, m_accuracy, m_t, h);
 
             // Shrink step by (acc/err)^(1/4) for 4th order.
-            Real hNew = Safety * h * std::sqrt(std::sqrt(m_accuracy/errNorm));
+            Real hNew = Safety * h * sqrt(sqrt(m_accuracy/errNorm));
             hNew = clamp(MinShrink*h, hNew, HysteresisLow*h);
             t1 = m_t + hNew;
             continue;
@@ -359,10 +359,22 @@ GeodesicIntegrator<Eqn>::takeOneStep(Real tStop) {
     // would have used here if it weren't for tStop.
     if (t1 < tStop) {
         // Possibly grow step for next time.
-        Real hNew = errNorm == 0 ? MaxGrow*h
-            :  Safety * h * std::sqrt(std::sqrt(m_accuracy/errNorm));
+        /*Real hNew = errNorm == 0 ? MaxGrow*h
+            :  Safety * h * sqrt(sqrt(m_accuracy/errNorm));*/
+		// Adapted for ADOL-C purpose
+		Real hNew;
+		if (errNorm == 0)
+		{
+			hNew = MaxGrow*h;
+		}
+		else
+		{
+			hNew = Safety * h * sqrt(sqrt(m_accuracy / errNorm));
+		}
+
+
         if (hNew < HysteresisHigh*h) hNew = h; // don't bother
-        hNew = std::min(hNew, MaxGrow*h);
+        hNew = fmin(hNew, MaxGrow*h);
         m_hNext = hNew;
     }
 }
@@ -394,7 +406,7 @@ GeodesicIntegrator<Eqn>::takeRKMStep(Real h, Vec<N>& y1, Vec<N>& y1err) const {
     // error estimate y1hat-y1=(1/5)(y1-ysave) (easily verified from the above).
 
     for (int i=0; i<N; ++i)
-        y1err[i] = std::abs(y1[i]-ysave[i]) / 5;
+        y1err[i] = fabs(y1[i]-ysave[i]) / 5;
 }
 
 } // namespace SimTK

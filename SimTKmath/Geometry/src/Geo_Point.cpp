@@ -452,7 +452,7 @@ public:
     // This function calculates the volume as a function of rotation angles
     // relative to the starting frame B0.
     int f(const Vector& angles, Real& volume) const override {
-        Vec3P a; a[0] = P(angles[0]); a[1] = P(angles[1]); a[2] = P(angles[2]);
+        Vec3P a; a[0] = P(angles[0].getValue()); a[1] = P(angles[1].getValue()); a[2] = P(angles[2].getValue());
         Rotation_<P> R_B0B(BodyRotationSequence,
                            a[0], XAxis, a[1], YAxis, a[2], ZAxis);
         int least[3], most[3];
@@ -506,7 +506,7 @@ calcOrientedBoundingBoxIndirect(const Array_<const Vec3P*>& points_F,
         Differentiator diff(grad);
         Vector g;
         diff.calcGradient(Vector(3, Real(0)), (Real)volume, g);
-        Vec3P dir; dir[0]=P(g[0]); dir[1]=P(g[1]); dir[2]=P(g[2]);
+        Vec3P dir; dir[0]=P(g[0].getValue()); dir[1]=P(g[1].getValue()); dir[2]=P(g[2].getValue());
 
         // Gradient has units of volume/radian.
         // Set initial step to attempt a 10% volume reduction.

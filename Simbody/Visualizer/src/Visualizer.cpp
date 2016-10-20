@@ -104,10 +104,10 @@ public:
         m_mode(PassThrough), m_frameRateFPS(DefaultFrameRateFPS), 
         m_simTimeUnitsPerSec(1), 
         m_desiredBufferLengthInSec(DefaultDesiredBufferLengthInSec), 
-        m_timeBetweenFramesInNs(secToNs(1/DefaultFrameRateFPS)),
+        m_timeBetweenFramesInNs(secToNs(1/DefaultFrameRateFPS.getValue())),
         m_allowableFrameJitterInNs(DefaultAllowableFrameJitterInNs),
         m_allowableFrameTimeSlopInNs(
-            secToNs(DefaultSlopAsFractionOfFrameInterval/DefaultFrameRateFPS)),
+            secToNs(DefaultSlopAsFractionOfFrameInterval.getValue() /DefaultFrameRateFPS.getValue())),
         m_adjustedRealTimeBase(realTimeInNs()),
         m_prevFrameSimTime(-1), m_nextFrameDueAdjRT(-1), 
         m_oldest(0),m_nframe(0),
@@ -204,9 +204,9 @@ public:
 
         // Frame rate.
         m_frameRateFPS               = framesPerSec;
-        m_timeBetweenFramesInNs      = secToNs(1/m_frameRateFPS);
+        m_timeBetweenFramesInNs      = secToNs(1/m_frameRateFPS.getValue());
         m_allowableFrameTimeSlopInNs = 
-            secToNs(DefaultSlopAsFractionOfFrameInterval/m_frameRateFPS);
+            secToNs(DefaultSlopAsFractionOfFrameInterval.getValue() /m_frameRateFPS.getValue());
         m_allowableFrameJitterInNs   = DefaultAllowableFrameJitterInNs;
 
         // Time scale.
@@ -216,7 +216,7 @@ public:
         m_desiredBufferLengthInSec = desiredBufLengthSec;
 
         int numFrames = 
-            (int)(m_desiredBufferLengthInSec/nsToSec(m_timeBetweenFramesInNs) 
+            (int)(m_desiredBufferLengthInSec.getValue() /nsToSec(m_timeBetweenFramesInNs)
                   + 0.5);
         if (numFrames==0 && m_desiredBufferLengthInSec > 0)
             numFrames = 1;
@@ -358,7 +358,7 @@ public:
         frame.desiredDrawTimeAdjRT = desiredDrawTimeAdjRT;
 
         // Record the frame time.
-        m_prevFrameSimTime = state.getTime();
+        m_prevFrameSimTime = state.getTime().getValue();
 
         // Set the expected next frame time (in AdjRT).
         m_nextFrameDueAdjRT = desiredDrawTimeAdjRT + m_timeBetweenFramesInNs;
@@ -426,14 +426,14 @@ public:
     // elapsed since t=0 if this simulation were running at exactly the desired
     // real time rate.
     long long convertSimTimeToNs(const double& t)
-    {   return secToNs(t / m_simTimeUnitsPerSec); }
+    {   return secToNs(t / m_simTimeUnitsPerSec.getValue()); }
 
     // same as ns; that's what AdjRT tries to be
     long long convertSimTimeToAdjRT(const double& t)
     {   return convertSimTimeToNs(t); } 
 
     double convertAdjRTtoSimTime(const long long& a)
-    {   return nsToSec(a) * m_simTimeUnitsPerSec; }
+    {   return nsToSec(a) * m_simTimeUnitsPerSec.getValue(); }
 
     long long convertRTtoAdjRT(const long long& r)
     {   return r - m_adjustedRealTimeBase; }
@@ -712,7 +712,7 @@ void Visualizer::Impl::reportRealtime(const State& state) {
     }
 
     // scale, convert to ns (doesn't depend on real time base)
-    const long long t = convertSimTimeToAdjRT(state.getTime()); 
+    const long long t = convertSimTimeToAdjRT(state.getTime().getValue());
 
     // If this is the first frame, or first since last setMode(), then
     // we synchronize Adjusted Real Time to match. Readjustments will occur

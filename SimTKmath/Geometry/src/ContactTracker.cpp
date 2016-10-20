@@ -261,7 +261,7 @@ estimateConvexImplicitPairContactUsingMPR
             return false;
         }
 
-        const Real depthChange = std::abs(s4.depth - depth);
+        const Real depthChange = fabs(s4.depth - depth);
 
 
         bool mustReturn=false, okToReturn=false;
@@ -363,7 +363,7 @@ refineImplicitPair
         if (!lu.isSingular())
             lu.solve(errVec, deltaVec);     // writes into delta also
         else {
-            FactorQTZ qtz(JMat, SqrtEps);
+            FactorQTZ qtz(JMat, SqrtEps.getValue());
             qtz.solve(errVec, deltaVec);    // writes into delta also
         }
 
@@ -454,8 +454,8 @@ findImplicitPairError
 
     UnitVec3 nA(-gradA);
     UnitVec3 nB(X_AB.R()*(-gradB));
-    UnitVec3 uA(std::abs(nA[0])>Real(0.5)? nA%Vec3(0, 1, 0) : nA%Vec3(1, 0, 0));
-    UnitVec3 uB(std::abs(nB[0])>Real(0.5)? nB%Vec3(0, 1, 0) : nB%Vec3(1, 0, 0));
+    UnitVec3 uA(fabs(nA[0])>Real(0.5)? nA%Vec3(0, 1, 0) : nA%Vec3(1, 0, 0));
+    UnitVec3 uB(fabs(nB[0])>Real(0.5)? nB%Vec3(0, 1, 0) : nB%Vec3(1, 0, 0));
     Vec3 vA = nA%uA; // Already a unit vector, so we don't need to normalize it.
     Vec3 vB = nB%uB;
 
@@ -732,7 +732,7 @@ bool ContactTracker::SphereSphere::trackContact
         if (!priorStatus.getContactId().isValid())
             return true; // successful return: still separated
 
-        const Real separation = std::sqrt(d2) - rr;   // > cutoff, ~25 flops
+        const Real separation = sqrt(d2) - rr;   // > cutoff, ~25 flops
         const Transform X_S1S2(~X_GS1.R()*X_GS2.R(), 
                                ~X_GS1.R()*p_12_G);    // 60 flops
         currentStatus = BrokenContact(priorStatus.getSurface1(),
@@ -741,7 +741,7 @@ bool ContactTracker::SphereSphere::trackContact
         return true;
     }
 
-    const Real d = std::sqrt(d2); // ~20 flops
+    const Real d = sqrt(d2); // ~20 flops
     if (d < SignificantReal) {    // 1 flop
         // TODO: If the centers are coincident we should use past information
         // to determine the most likely normal. For now just fail.

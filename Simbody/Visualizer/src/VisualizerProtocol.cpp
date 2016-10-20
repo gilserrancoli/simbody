@@ -376,7 +376,7 @@ void VisualizerProtocol::beginScene(Real time) {
     pthread_mutex_lock(&sceneLock);
     char command = StartOfScene;
     WRITE(outPipe, &command, 1);
-    float fTime = (float)time;
+    float fTime = (float)time.getValue();
     WRITE(outPipe, &fTime, sizeof(float));
 }
 
@@ -419,9 +419,9 @@ void VisualizerProtocol::drawPolygonalMesh(const PolygonalMesh& mesh, const Tran
     vector<unsigned short> faces;
     for (int i = 0; i < mesh.getNumVertices(); i++) {
         Vec3 pos = mesh.getVertexPosition(i);
-        vertices.push_back((float) pos[0]);
-        vertices.push_back((float) pos[1]);
-        vertices.push_back((float) pos[2]);
+        vertices.push_back((float) pos[0].getValue());
+        vertices.push_back((float) pos[1].getValue());
+        vertices.push_back((float) pos[2].getValue());
     }
     for (int i = 0; i < mesh.getNumFaces(); i++) {
         int numVert = mesh.getNumVerticesForFace(i);
@@ -451,9 +451,9 @@ void VisualizerProtocol::drawPolygonalMesh(const PolygonalMesh& mesh, const Tran
                 center += pos;
             }
             center /= numVert;
-            vertices.push_back((float) center[0]);
-            vertices.push_back((float) center[1]);
-            vertices.push_back((float) center[2]);
+            vertices.push_back((float) center[0].getValue());
+            vertices.push_back((float) center[1].getValue());
+            vertices.push_back((float) center[2].getValue());
             const unsigned newIndex = (unsigned)(vertices.size()/3-1);
             for (int j = 0; j < numVert-1; j++) {
                 faces.push_back((unsigned short) mesh.getFaceVertex(i, j));
@@ -503,19 +503,19 @@ drawMesh(const Transform& X_GM, const Vec3& scale, const Vec4& color,
     WRITE(outPipe, &command, 1);
     float buffer[13];
     Vec3 rot = X_GM.R().convertRotationToBodyFixedXYZ();
-    buffer[0] = (float) rot[0];
-    buffer[1] = (float) rot[1];
-    buffer[2] = (float) rot[2];
-    buffer[3] = (float) X_GM.p()[0];
-    buffer[4] = (float) X_GM.p()[1];
-    buffer[5] = (float) X_GM.p()[2];
-    buffer[6] = (float) scale[0];
-    buffer[7] = (float) scale[1];
-    buffer[8] = (float) scale[2];
-    buffer[9] = (float) color[0];
-    buffer[10] = (float) color[1];
-    buffer[11] = (float) color[2];
-    buffer[12] = (float) color[3];
+    buffer[0] = (float) rot[0].getValue();
+    buffer[1] = (float) rot[1].getValue();
+    buffer[2] = (float) rot[2].getValue();
+    buffer[3] = (float) X_GM.p()[0].getValue();
+    buffer[4] = (float) X_GM.p()[1].getValue();
+    buffer[5] = (float) X_GM.p()[2].getValue();
+    buffer[6] = (float) scale[0].getValue();
+    buffer[7] = (float) scale[1].getValue();
+    buffer[8] = (float) scale[2].getValue();
+    buffer[9] = (float) color[0].getValue();
+    buffer[10] = (float) color[1].getValue();
+    buffer[11] = (float) color[2].getValue();
+    buffer[12] = (float) color[3].getValue();
     WRITE(outPipe, buffer, 13*sizeof(float));
     unsigned short buffer2[2];
     buffer2[0] = meshIndex;
@@ -528,16 +528,16 @@ drawLine(const Vec3& end1, const Vec3& end2, const Vec4& color, Real thickness)
 {
     WRITE(outPipe, &AddLine, 1);
     float buffer[10];
-    buffer[0] = (float) color[0];
-    buffer[1] = (float) color[1];
-    buffer[2] = (float) color[2];
-    buffer[3] = (float) thickness;
-    buffer[4] = (float) end1[0];
-    buffer[5] = (float) end1[1];
-    buffer[6] = (float) end1[2];
-    buffer[7] = (float) end2[0];
-    buffer[8] = (float) end2[1];
-    buffer[9] = (float) end2[2];
+    buffer[0] = (float) color[0].getValue();
+    buffer[1] = (float) color[1].getValue();
+    buffer[2] = (float) color[2].getValue();
+    buffer[3] = (float) thickness.getValue();
+    buffer[4] = (float) end1[0].getValue();
+    buffer[5] = (float) end1[1].getValue();
+    buffer[6] = (float) end1[2].getValue();
+    buffer[7] = (float) end2[0].getValue();
+    buffer[8] = (float) end2[1].getValue();
+    buffer[9] = (float) end2[2].getValue();
     WRITE(outPipe, buffer, 10*sizeof(float));
 }
 
@@ -551,18 +551,18 @@ drawText(const Transform& X_GT, const Vec3& scale, const Vec4& color,
     WRITE(outPipe, &AddText, 1);
     float buffer[12];
     const Vec3 rot = X_GT.R().convertRotationToBodyFixedXYZ();
-    buffer[0] = (float) rot[0];
-    buffer[1] = (float) rot[1];
-    buffer[2] = (float) rot[2];
-    buffer[3] = (float) X_GT.p()[0];
-    buffer[4] = (float) X_GT.p()[1];
-    buffer[5] = (float) X_GT.p()[2];
-    buffer[6] = (float) scale[0];
-    buffer[7] = (float) scale[1];
-    buffer[8] = (float) scale[2];
-    buffer[9] = (float) color[0];
-    buffer[10]= (float) color[1];
-    buffer[11]= (float) color[2];
+    buffer[0] = (float) rot[0].getValue();
+    buffer[1] = (float) rot[1].getValue();
+    buffer[2] = (float) rot[2].getValue();
+    buffer[3] = (float) X_GT.p()[0].getValue();
+    buffer[4] = (float) X_GT.p()[1].getValue();
+    buffer[5] = (float) X_GT.p()[2].getValue();
+    buffer[6] = (float) scale[0].getValue();
+    buffer[7] = (float) scale[1].getValue();
+    buffer[8] = (float) scale[2].getValue();
+    buffer[9] = (float) color[0].getValue();
+    buffer[10]= (float) color[1].getValue();
+    buffer[11]= (float) color[2].getValue();
     WRITE(outPipe, buffer, 12*sizeof(float));
     short face = (short)faceCamera;
     WRITE(outPipe, &face, sizeof(short));
@@ -578,18 +578,18 @@ drawCoords(const Transform& X_GF, const Vec3& axisLengths, const Vec4& color) {
     WRITE(outPipe, &AddCoords, 1);
     float buffer[12];
     const Vec3 rot = X_GF.R().convertRotationToBodyFixedXYZ();
-    buffer[0] = (float) rot[0];
-    buffer[1] = (float) rot[1];
-    buffer[2] = (float) rot[2];
-    buffer[3] = (float) X_GF.p()[0];
-    buffer[4] = (float) X_GF.p()[1];
-    buffer[5] = (float) X_GF.p()[2];
-    buffer[6] = (float) axisLengths[0];
-    buffer[7] = (float) axisLengths[1];
-    buffer[8] = (float) axisLengths[2];
-    buffer[9] = (float) color[0];
-    buffer[10]= (float) color[1];
-    buffer[11]= (float) color[2];
+    buffer[0] = (float) rot[0].getValue();
+    buffer[1] = (float) rot[1].getValue();
+    buffer[2] = (float) rot[2].getValue();
+    buffer[3] = (float) X_GF.p()[0].getValue();
+    buffer[4] = (float) X_GF.p()[1].getValue();
+    buffer[5] = (float) X_GF.p()[2].getValue();
+    buffer[6] = (float) axisLengths[0].getValue();
+    buffer[7] = (float) axisLengths[1].getValue();
+    buffer[8] = (float) axisLengths[2].getValue();
+    buffer[9] = (float) color[0].getValue();
+    buffer[10]= (float) color[1].getValue();
+    buffer[11]= (float) color[2].getValue();
     WRITE(outPipe, buffer, 12*sizeof(float));
 }
 
@@ -620,16 +620,16 @@ addSlider(const String& title, int id, Real minVal, Real maxVal, Real value) {
     WRITE(outPipe, title.c_str(), titleLength);
     WRITE(outPipe, &id, sizeof(int));
     float buffer[3];
-    buffer[0] = (float) minVal;
-    buffer[1] = (float) maxVal;
-    buffer[2] = (float) value;
+    buffer[0] = (float) minVal.getValue();
+    buffer[1] = (float) maxVal.getValue();
+    buffer[2] = (float) value.getValue();
     WRITE(outPipe, buffer, 3*sizeof(float));
     pthread_mutex_unlock(&sceneLock);
 }
 
 
 void VisualizerProtocol::setSliderValue(int id, Real newValue) const {
-    const float value = (float)newValue;
+    const float value = (float)newValue.getValue();
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetSliderValue, 1);
     WRITE(outPipe, &id, sizeof(int));
@@ -639,7 +639,7 @@ void VisualizerProtocol::setSliderValue(int id, Real newValue) const {
 
 void VisualizerProtocol::setSliderRange(int id, Real newMin, Real newMax) const {
     float buffer[2];
-    buffer[0] = (float)newMin; buffer[1] = (float)newMax;
+    buffer[0] = (float)newMin.getValue(); buffer[1] = (float)newMax.getValue();
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetSliderRange, 1);
     WRITE(outPipe, &id, sizeof(int));
@@ -657,7 +657,7 @@ void VisualizerProtocol::setWindowTitle(const String& title) const {
 }
 
 void VisualizerProtocol::setMaxFrameRate(Real rate) const {
-    const float frameRate = (float)rate;
+    const float frameRate = (float)rate.getValue();
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetMaxFrameRate, 1);
     WRITE(outPipe, &frameRate, sizeof(float));
@@ -667,9 +667,9 @@ void VisualizerProtocol::setMaxFrameRate(Real rate) const {
 
 void VisualizerProtocol::setBackgroundColor(const Vec3& color) const {
     float buffer[3];
-    buffer[0] = (float)color[0]; 
-    buffer[1] = (float)color[1]; 
-    buffer[2] = (float)color[2];
+    buffer[0] = (float)color[0].getValue();
+    buffer[1] = (float)color[1].getValue();
+    buffer[2] = (float)color[2].getValue();
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetBackgroundColor, 1);
     WRITE(outPipe, buffer, 3*sizeof(float));
@@ -721,12 +721,12 @@ void VisualizerProtocol::setCameraTransform(const Transform& X_GC) const {
     WRITE(outPipe, &SetCamera, 1);
     float buffer[6];
     Vec3 rot = X_GC.R().convertRotationToBodyFixedXYZ();
-    buffer[0] = (float) rot[0];
-    buffer[1] = (float) rot[1];
-    buffer[2] = (float) rot[2];
-    buffer[3] = (float) X_GC.p()[0];
-    buffer[4] = (float) X_GC.p()[1];
-    buffer[5] = (float) X_GC.p()[2];
+    buffer[0] = (float) rot[0].getValue();
+    buffer[1] = (float) rot[1].getValue();
+    buffer[2] = (float) rot[2].getValue();
+    buffer[3] = (float) X_GC.p()[0].getValue();
+    buffer[4] = (float) X_GC.p()[1].getValue();
+    buffer[5] = (float) X_GC.p()[2].getValue();
     WRITE(outPipe, buffer, 6*sizeof(float));
     pthread_mutex_unlock(&sceneLock);
 }
@@ -741,12 +741,12 @@ void VisualizerProtocol::lookAt(const Vec3& point, const Vec3& upDirection) cons
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &LookAt, 1);
     float buffer[6];
-    buffer[0] = (float) point[0];
-    buffer[1] = (float) point[1];
-    buffer[2] = (float) point[2];
-    buffer[3] = (float) upDirection[0];
-    buffer[4] = (float) upDirection[1];
-    buffer[5] = (float) upDirection[2];
+    buffer[0] = (float) point[0].getValue();
+    buffer[1] = (float) point[1].getValue();
+    buffer[2] = (float) point[2].getValue();
+    buffer[3] = (float) upDirection[0].getValue();
+    buffer[4] = (float) upDirection[1].getValue();
+    buffer[5] = (float) upDirection[2].getValue();
     WRITE(outPipe, buffer, 6*sizeof(float));
     pthread_mutex_unlock(&sceneLock);
 }
@@ -755,7 +755,7 @@ void VisualizerProtocol::setFieldOfView(Real fov) const {
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetFieldOfView, 1);
     float buffer[1];
-    buffer[0] = (float)fov;
+    buffer[0] = (float)fov.getValue();
     WRITE(outPipe, buffer, sizeof(float));
     pthread_mutex_unlock(&sceneLock);
 }
@@ -764,8 +764,8 @@ void VisualizerProtocol::setClippingPlanes(Real near, Real far) const {
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetClipPlanes, 1);
     float buffer[2];
-    buffer[0] = (float)near;
-    buffer[1] = (float)far;
+    buffer[0] = (float)near.getValue();
+    buffer[1] = (float)far.getValue();
     WRITE(outPipe, buffer, 2*sizeof(float));
     pthread_mutex_unlock(&sceneLock);
 }
@@ -784,7 +784,7 @@ setSystemUpDirection(const CoordinateDirection& upDir) {
 void VisualizerProtocol::setGroundHeight(Real height) {
     pthread_mutex_lock(&sceneLock);
     WRITE(outPipe, &SetGroundHeight, 1);
-    float heightBuffer = (float) height;
+    float heightBuffer = (float) height.getValue();
     WRITE(outPipe, &heightBuffer, sizeof(float));
     pthread_mutex_unlock(&sceneLock);
 }

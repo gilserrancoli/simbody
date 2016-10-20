@@ -687,25 +687,36 @@ Vec3 ContactGeometry::TriangleMesh::Impl::findNearestPointToFace
                 // Region 4
 
                 if (d < 0) {
-                    s = (-d >= a ? 1 : -d/a);
+                    /*s = (-d >= a ? 1 : -d/a);*/
+					if (-d >= a) { s = 1; }
+					else { s = -d / a; }
                     t = 0;
                 }
                 else {
                     s = 0;
-                    t = (e >= 0 ? 0 : (-e >= c ? 1 : -e/c));
+                    /*t = (e >= 0 ? 0 : (-e >= c ? 1 : -e/c));*/
+					if (e >= 0) { t = 0; }
+					else if (-e >= c) { t = 1; }
+					else { t = -e / c; }
                 }
             }
             else {
                 // Region 3
 
                 s = 0;
-                t = (e >= 0 ? 0 : (-e >= c ? 1 : -e/c));
+                /*t = (e >= 0 ? 0 : (-e >= c ? 1 : -e/c));*/
+				if (e >= 0) { t = 0; }
+				else if (-e >= c) { t = 1; }
+				else { t = -e / c; }
             }
         }
         else if (t < 0) {
             // Region 5
 
-            s = (d >= 0 ? 0 : (-d >= a ? 1 : -d/a));
+            /*s = (d >= 0 ? 0 : (-d >= a ? 1 : -d/a));*/
+			if (d >= 0) { s = 0; }
+			else if (-d >= a) { s = 1; }
+			else { s = -d / a; }
             t = 0;
         }
         else {
@@ -725,12 +736,17 @@ Vec3 ContactGeometry::TriangleMesh::Impl::findNearestPointToFace
             if (temp1 > temp0) {
                 Real numer = temp1-temp0;
                 Real denom = a-2*b+c;
-                s = (numer >= denom ? 1 : numer/denom);
+                /*s = (numer >= denom ? 1 : numer/denom);*/
+				if (numer >= denom) { s = 1; }
+				else {s = numer / denom;}
                 t = 1-s;
             }
             else {
                 s = 0;
-                t = (temp1 <= 0 ? 1 : (e >= 0 ? 0 : -e/c));
+                /*t = (temp1 <= 0 ? 1 : (e >= 0 ? 0 : -e/c));*/
+				if (temp1 <= 0) { t = 1; }
+				else if (e >= 0) { t = 0; }
+				else { t = -e / c; }
             }
         }
         else if (t < 0) {
@@ -741,11 +757,16 @@ Vec3 ContactGeometry::TriangleMesh::Impl::findNearestPointToFace
             if (temp1 > temp0) {
                 Real numer = temp1-temp0;
                 Real denom = a-2*b+c;
-                t = (numer >= denom ? 1 : numer/denom);
+                /*t = (numer >= denom ? 1 : numer/denom);*/
+				if (numer >= denom) { t = 1; }
+				else { t = numer / denom; }
                 s = 1-t;
             }
             else {
-                s = (temp1 <= 0 ? 1 : (e >= 0 ? 0 : -d/a));
+                /*s = (temp1 <= 0 ? 1 : (e >= 0 ? 0 : -d/a));*/
+				if (temp1 <= 0) { s = 1; }
+				else if (e >= 0) { s = 0; }
+				else { s = -d / a; }
                 t = 0;
             }
         }
@@ -757,7 +778,9 @@ Vec3 ContactGeometry::TriangleMesh::Impl::findNearestPointToFace
                 s = 0;
             else {
                 const Real denom = a-2*b+c;
-                s = (numer >= denom ? 1 : numer/denom);
+                /*s = (numer >= denom ? 1 : numer/denom);*/
+				if (numer >= denom) { s = 1; }
+				else { s = numer / denom; }
             }
             t = 1-s;
         }
@@ -855,7 +878,8 @@ Vec3 OBBTreeNodeImpl::findNearestPoint
         Vec3 p = mesh.findNearestPointToFace(position, triangles[i], triangleUV);
         Vec3 offset = p-position;
         // TODO: volatile to work around compiler bug
-        volatile Real d2 = offset.normSqr(); 
+        //volatile Real d2 = offset.normSqr(); 
+		Real d2 = offset.normSqr();
         if (d2 < distance2 || (d2 < distance2*(1+tol) && fabs(~offset*mesh.faces[triangles[i]].normal) > fabs(~offset*mesh.faces[face].normal))) {
             nearestPoint = p;
             distance2 = d2;

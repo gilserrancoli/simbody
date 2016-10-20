@@ -429,7 +429,7 @@ int MultibodyGraphMaker::splitBody(int masterBodyNum) {
     // First slave is number 1, slave 0 is the master.
     std::stringstream ss;
     ss << "#" << master.name << "_slave_" << master.getNumSlaves()+1;
-    Body slave(ss.str(), NaN, false, NULL);
+    Body slave(ss.str(), NaN.getValue(), false, NULL);
     slave.master = masterBodyNum;
     master.slaves.push_back(slaveBodyNum);
     bodies.push_back(slave);

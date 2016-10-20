@@ -112,7 +112,7 @@ static bool pointsAreNumericallyCoincident
    (const Vec3P& p1, const Vec3P& p2, RealP tol)
 {
     const RealP maxcoord = std::max(max(p1.abs()),max(p2.abs())); // ~7 flops
-    const RealP scale = std::max(tol, maxcoord*tol); // 2 flops
+    const RealP scale = fmax(tol, maxcoord*tol); // 2 flops
     return findDistanceSqr(p1,p2) < square(scale); // 10 flops
 }
 
