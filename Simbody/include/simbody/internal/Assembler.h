@@ -697,7 +697,8 @@ mutable Array_<AssemblyConditionIndex>  goals;
 
 class AssemblerSystem; // local class
 mutable AssemblerSystem* asmSys;
-mutable Optimizer*       optimizer;
+//#testcomment
+//mutable Optimizer*       optimizer;
 
 mutable int nAssemblySteps;   // count assemble() and track() calls
 mutable int nInitializations; // # times we had to reinitialize

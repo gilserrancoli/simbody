@@ -118,6 +118,7 @@ Constraint& SimbodyMatterSubsystem::
 updConstraint(ConstraintIndex id) {return updRep().updConstraint(id);}
 
 
+
 UnilateralContactIndex SimbodyMatterSubsystem::
 adoptUnilateralContact(UnilateralContact* child)
 {   return updRep().adoptUnilateralContact(child); }
