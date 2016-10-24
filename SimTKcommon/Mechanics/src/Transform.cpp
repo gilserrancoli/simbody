@@ -36,8 +36,10 @@ namespace SimTK {
 // instantiate some broken method.
 template class Transform_<float>;
 template class Transform_<double>;
+template class Transform_<adouble>;
 template class InverseTransform_<float>;
 template class InverseTransform_<double>;
+template class InverseTransform_<adouble>;
 
 
 // Define the stream output operators and instantiate them for float and
@@ -45,19 +47,34 @@ template class InverseTransform_<double>;
 template <class P> std::ostream& 
 operator<<(std::ostream& o, const Transform_<P>& x ) 
 {   return o << x.asMat34() << Row<4,P>(0,0,0,1) << std::endl;}
+
+//template <class adouble> std::ostream&
+//operator<<(std::ostream& o, const Transform_<adouble>& x)
+//{	return o << << std::endl;}
+
 template <class P> std::ostream& 
 operator<<(std::ostream& o, const InverseTransform_<P>& x ) 
 {   return o << Transform_<P>(x);}
+
+//template <class adouble> std::ostream&
+//operator<<(std::ostream& o, const InverseTransform_<adouble>& x)
+//{ return o <<  << std::endl; }
+
 
 template SimTK_SimTKCOMMON_EXPORT std::ostream& 
 operator<<(std::ostream& o, const Transform_<float>& x );
 template SimTK_SimTKCOMMON_EXPORT std::ostream& 
 operator<<(std::ostream& o, const Transform_<double>& x );
+template SimTK_SimTKCOMMON_EXPORT std::ostream&
+operator<<(std::ostream& o, const Transform_<adouble>& x);
+
 
 template SimTK_SimTKCOMMON_EXPORT std::ostream& 
 operator<<(std::ostream& o, const InverseTransform_<float>& x );
 template SimTK_SimTKCOMMON_EXPORT std::ostream& 
 operator<<(std::ostream& o, const InverseTransform_<double>& x );
+template SimTK_SimTKCOMMON_EXPORT std::ostream&
+operator<<(std::ostream& o, const InverseTransform_<adouble>& x);
 
 //------------------------------------------------------------------------------
 }  // End of namespace SimTK

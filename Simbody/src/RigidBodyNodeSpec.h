@@ -468,17 +468,17 @@ getH_FMCol(const SBTreePositionCache& pc, int j) const override {
 // setQToFit{Rotation,Translation} and 
 // setUToFit{AngularVelocity,LinearVelocity}; there are no defaults.
 
-void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
-                            Vector& q) const override {
-    setQToFitRotationImpl   (sbs,X_FM.R(),q);
-    setQToFitTranslationImpl(sbs,X_FM.p(),q);
-}
+//void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
+//                            Vector& q) const override {
+//    setQToFitRotationImpl   (sbs,X_FM.R(),q);
+//    setQToFitTranslationImpl(sbs,X_FM.p(),q);
+//}
 
-void setUToFitVelocityImpl(const SBStateDigest& sbs, const Vector& q, 
-                           const SpatialVec& V_FM, Vector& u) const override {
-    setUToFitAngularVelocityImpl(sbs,q,V_FM[0],u);
-    setUToFitLinearVelocityImpl (sbs,q,V_FM[1],u);
-}
+//void setUToFitVelocityImpl(const SBStateDigest& sbs, const Vector& q, 
+//                           const SpatialVec& V_FM, Vector& u) const override {
+//    setUToFitAngularVelocityImpl(sbs,q,V_FM[0],u);
+//    setUToFitLinearVelocityImpl (sbs,q,V_FM[1],u);
+//}
 
 // End of RigidBodyNode overrides.
 //------------------------------------------------------------------------------

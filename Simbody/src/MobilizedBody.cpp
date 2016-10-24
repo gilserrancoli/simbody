@@ -251,25 +251,25 @@ const Transform& MobilizedBody::getMobilizerTransform(const State& s) const {
 const SpatialVec& MobilizedBody::getMobilizerVelocity(const State& s) const {
     return getImpl().getMobilizerVelocity(s);
 }
-
-void MobilizedBody::setQToFitTransform(State& s, const Transform& X_MbM) const { 
-    getImpl().setQToFitTransform(s,X_MbM); 
-}
-void MobilizedBody::setQToFitRotation(State& s, const Rotation& R_MbM) const { 
-    getImpl().setQToFitRotation(s,R_MbM); 
-}
-void MobilizedBody::setQToFitTranslation(State& s, const Vec3& p_MbM) const { 
-    getImpl().setQToFitTranslation(s,p_MbM);
-}
-void MobilizedBody::setUToFitVelocity(State& s, const SpatialVec& V_MbM) const { 
-    getImpl().setUToFitVelocity(s,V_MbM);
-}
-void MobilizedBody::setUToFitAngularVelocity(State& s, const Vec3& w_MbM) const { 
-    getImpl().setUToFitAngularVelocity(s,w_MbM);
-}
-void MobilizedBody::setUToFitLinearVelocity(State& s, const Vec3& v_MbM) const { 
-    getImpl().setUToFitLinearVelocity(s,v_MbM);
-}
+// #test
+//void MobilizedBody::setQToFitTransform(State& s, const Transform& X_MbM) const { 
+//    getImpl().setQToFitTransform(s,X_MbM); 
+//}
+//void MobilizedBody::setQToFitRotation(State& s, const Rotation& R_MbM) const { 
+//    getImpl().setQToFitRotation(s,R_MbM); 
+//}
+//void MobilizedBody::setQToFitTranslation(State& s, const Vec3& p_MbM) const { 
+//    getImpl().setQToFitTranslation(s,p_MbM);
+//}
+//void MobilizedBody::setUToFitVelocity(State& s, const SpatialVec& V_MbM) const { 
+//    getImpl().setUToFitVelocity(s,V_MbM);
+//}
+//void MobilizedBody::setUToFitAngularVelocity(State& s, const Vec3& w_MbM) const { 
+//    getImpl().setUToFitAngularVelocity(s,w_MbM);
+//}
+//void MobilizedBody::setUToFitLinearVelocity(State& s, const Vec3& v_MbM) const { 
+//    getImpl().setUToFitLinearVelocity(s,v_MbM);
+//}
 
 SpatialVec MobilizedBody::getHCol(const State& s, MobilizerUIndex ux) const {
     SimTK_INDEXCHECK(ux, getNumU(s), "MobilizedBody::getHCol()");
@@ -737,48 +737,48 @@ copyOutDefaultQ(const State& s, Vector& qDefault) const {
     // Probably most of this functionality should be handled directly
     // by the MobilizedBody objects.
 
-void MobilizedBodyImpl::setQToFitTransform(State& s, const Transform& X_MbM) const {
-    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
-    const SBStateDigest digest(s, matterRep, Stage::Instance);
-    Vector& q = matterRep.updQ(s);
-    return getMyRigidBodyNode().setQToFitTransform(digest, X_MbM, q);
-}
-void MobilizedBodyImpl::setQToFitRotation(State& s, const Rotation& R_MbM) const {
-    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
-    const SBStateDigest digest(s, matterRep, Stage::Instance);
-    Vector& q = matterRep.updQ(s);
-    return getMyRigidBodyNode().setQToFitRotation(digest, R_MbM, q);
-}
-void MobilizedBodyImpl::setQToFitTranslation(State& s, const Vec3& p_MbM) const
-{
-    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
-    const SBStateDigest digest(s, matterRep, Stage::Instance);
-    Vector& q = matterRep.updQ(s);
-    return getMyRigidBodyNode().setQToFitTranslation(digest, p_MbM, q);
-}
+//void MobilizedBodyImpl::setQToFitTransform(State& s, const Transform& X_MbM) const {
+//    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
+//    const SBStateDigest digest(s, matterRep, Stage::Instance);
+//    Vector& q = matterRep.updQ(s);
+//    return getMyRigidBodyNode().setQToFitTransform(digest, X_MbM, q);
+//}
+//void MobilizedBodyImpl::setQToFitRotation(State& s, const Rotation& R_MbM) const {
+//    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
+//    const SBStateDigest digest(s, matterRep, Stage::Instance);
+//    Vector& q = matterRep.updQ(s);
+//    return getMyRigidBodyNode().setQToFitRotation(digest, R_MbM, q);
+//}
+//void MobilizedBodyImpl::setQToFitTranslation(State& s, const Vec3& p_MbM) const
+//{
+//    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
+//    const SBStateDigest digest(s, matterRep, Stage::Instance);
+//    Vector& q = matterRep.updQ(s);
+//    return getMyRigidBodyNode().setQToFitTranslation(digest, p_MbM, q);
+//}
 
-void MobilizedBodyImpl::setUToFitVelocity(State& s, const SpatialVec& V_MbM) const {
-    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
-    const SBStateDigest digest(s, matterRep, Stage::Instance);
-    const Vector& q = matterRep.updQ(s);
-    Vector&       u = matterRep.updU(s);
-    return getMyRigidBodyNode().setUToFitVelocity(digest, q, V_MbM, u);
-}
-void MobilizedBodyImpl::setUToFitAngularVelocity(State& s, const Vec3& w_MbM) const {
-    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
-    const SBStateDigest digest(s, matterRep, Stage::Instance);
-    const Vector& q = matterRep.updQ(s);
-    Vector&       u = matterRep.updU(s);
-    return getMyRigidBodyNode().setUToFitAngularVelocity(digest, q, w_MbM, u);
-}
-void MobilizedBodyImpl::setUToFitLinearVelocity(State& s, const Vec3& v_MbM)  const
-{
-    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
-    const SBStateDigest digest(s, matterRep, Stage::Instance);
-    const Vector& q = matterRep.updQ(s);
-    Vector&       u = matterRep.updU(s);
-    return getMyRigidBodyNode().setUToFitLinearVelocity(digest, q, v_MbM, u);
-}
+//void MobilizedBodyImpl::setUToFitVelocity(State& s, const SpatialVec& V_MbM) const {
+//    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
+//    const SBStateDigest digest(s, matterRep, Stage::Instance);
+//    const Vector& q = matterRep.updQ(s);
+//    Vector&       u = matterRep.updU(s);
+//    return getMyRigidBodyNode().setUToFitVelocity(digest, q, V_MbM, u);
+//}
+//void MobilizedBodyImpl::setUToFitAngularVelocity(State& s, const Vec3& w_MbM) const {
+//    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
+//    const SBStateDigest digest(s, matterRep, Stage::Instance);
+//    const Vector& q = matterRep.updQ(s);
+//    Vector&       u = matterRep.updU(s);
+//    return getMyRigidBodyNode().setUToFitAngularVelocity(digest, q, w_MbM, u);
+//}
+//void MobilizedBodyImpl::setUToFitLinearVelocity(State& s, const Vec3& v_MbM)  const
+//{
+//    const SimbodyMatterSubsystemRep& matterRep = getMyMatterSubsystemRep();
+//    const SBStateDigest digest(s, matterRep, Stage::Instance);
+//    const Vector& q = matterRep.updQ(s);
+//    Vector&       u = matterRep.updU(s);
+//    return getMyRigidBodyNode().setUToFitLinearVelocity(digest, q, v_MbM, u);
+//}
 
     // REALIZE TOPOLOGY
 const RigidBodyNode& MobilizedBodyImpl::realizeTopology
@@ -2984,18 +2984,18 @@ multiplyByNDot(const State& s, bool transposeMatrix,
 //    for (int i = 0; i < nu; i++)
 //        u[i] = uvec[i];
 //}
-//
-//// Constructors without user-specified axes for function-based mobilized body
-//MobilizedBody::FunctionBased::FunctionBased
-//   (MobilizedBody& parent, const Body& body, 
-//    int nmobilities, const Array_<const Function*>& functions,
-//    const Array_<Array_<int> >& coordIndices,
-//    Direction direction)
-//:   Custom(parent, new FunctionBasedImpl(parent.updMatterSubsystem(), 
-//                                         nmobilities, functions, coordIndices), 
-//           body, direction) 
-//{
-//}
+
+// Constructors without user-specified axes for function-based mobilized body
+MobilizedBody::FunctionBased::FunctionBased
+   (MobilizedBody& parent, const Body& body, 
+    int nmobilities, const Array_<const Function*>& functions,
+    const Array_<Array_<int> >& coordIndices,
+    Direction direction)
+:   Custom(parent, new FunctionBasedImpl(parent.updMatterSubsystem(), 
+                                         nmobilities, functions, coordIndices), 
+           body, direction) 
+{
+}
 
 MobilizedBody::FunctionBased::FunctionBased
    (MobilizedBody& parent, const Transform& inbFrame, 

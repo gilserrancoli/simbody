@@ -80,44 +80,44 @@ RBNodeBushing(const MassProperties& mProps_B,
 // This has a default implementation but it rotates first then translates,
 // which works fine for the normal bushing but produces wrong behavior when
 // the mobilizer is reversed.
-void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
-                            Vector& q) const override 
-{
-    setQToFitTranslationImpl(sbs, X_FM.p(), q); // see below
-    setQToFitRotationImpl(sbs, X_FM.R(), q);
-}
+//void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
+//                            Vector& q) const override 
+//{
+//    setQToFitTranslationImpl(sbs, X_FM.p(), q); // see below
+//    setQToFitRotationImpl(sbs, X_FM.R(), q);
+//}
 
-void setQToFitRotationImpl(const SBStateDigest& sbs, const Rotation& R_FM,
-                           Vector& q) const override {
-    this->toQVec3(q,0) = R_FM.convertRotationToBodyFixedXYZ();
-}
+//void setQToFitRotationImpl(const SBStateDigest& sbs, const Rotation& R_FM,
+//                           Vector& q) const override {
+//    this->toQVec3(q,0) = R_FM.convertRotationToBodyFixedXYZ();
+//}
 
-void setQToFitTranslationImpl(const SBStateDigest& sbs, const Vec3& p_FM, 
-                              Vector& q) const override {
-    this->toQVec3(q,3) = p_FM; // skip the 3 Euler angles
-}
+//void setQToFitTranslationImpl(const SBStateDigest& sbs, const Vec3& p_FM, 
+//                              Vector& q) const override {
+//    this->toQVec3(q,3) = p_FM; // skip the 3 Euler angles
+//}
 
 // Given the angular velocity of M in F, expressed in F, compute the Euler
 // angle derivatives qdot that would produce that angular velocity, and 
 // return u=qdot.
-void setUToFitAngularVelocityImpl
-   (const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM,
-    Vector& u) const override 
-{
-    const Vec2 cosxy(cos(q[0]), cos(q[1]));
-    const Vec2 sinxy(sin(q[0]), sin(q[1]));
-    const Real oocosy = 1 / cosxy[1];
-    const Vec3 qdot = 
-        Rotation::convertAngVelInParentToBodyXYZDot(cosxy,sinxy,oocosy,w_FM);
-    this->toUVec3(u,0) = qdot;
-}
+//void setUToFitAngularVelocityImpl
+//   (const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM,
+//    Vector& u) const override 
+//{
+//    const Vec2 cosxy(cos(q[0]), cos(q[1]));
+//    const Vec2 sinxy(sin(q[0]), sin(q[1]));
+//    const Real oocosy = 1 / cosxy[1];
+//    const Vec3 qdot = 
+//        Rotation::convertAngVelInParentToBodyXYZDot(cosxy,sinxy,oocosy,w_FM);
+//    this->toUVec3(u,0) = qdot;
+//}
 
-void setUToFitLinearVelocityImpl
-   (const SBStateDigest& sbs, const Vector&, const Vec3& v_FM, 
-    Vector& u) const override 
-{
-    this->toUVec3(u,3) = v_FM;
-}
+//void setUToFitLinearVelocityImpl
+//   (const SBStateDigest& sbs, const Vector&, const Vec3& v_FM, 
+//    Vector& u) const override 
+//{
+//    this->toUVec3(u,3) = v_FM;
+//}
 
 // We want to cache cos and sin for each angle, and also 1/cos of the middle 
 // angle will be handy to have around.

@@ -26,7 +26,7 @@
 #include "SimTKcommon.h"
 #include "SimTKmath.h"
 #include "simbody/internal/common.h"
-#include "simbody/internal/ConditionalConstraint.h"
+//#include "simbody/internal/ConditionalConstraint.h"
 
 #include "SimbodyMatterSubsystemRep.h"
 #include "SimbodyTreeState.h"
@@ -143,31 +143,31 @@ ConstraintIndex SimbodyMatterSubsystemRep::adoptConstraint(Constraint& child) {
 }
 
 
-UnilateralContactIndex SimbodyMatterSubsystemRep::
-adoptUnilateralContact(UnilateralContact* child) {
-    assert(child);
-    invalidateSubsystemTopologyCache();
+//UnilateralContactIndex SimbodyMatterSubsystemRep::
+//adoptUnilateralContact(UnilateralContact* child) {
+//    assert(child);
+//    invalidateSubsystemTopologyCache();
+//
+//    const UnilateralContactIndex ucx(uniContacts.size());
+//    uniContacts.push_back(child); // grow
+//
+//    // Tell the contact object its index within the matter subsystem.
+//    child->setMyIndex(ucx);
+//    return ucx;
+//}
 
-    const UnilateralContactIndex ucx(uniContacts.size());
-    uniContacts.push_back(child); // grow
-
-    // Tell the contact object its index within the matter subsystem.
-    child->setMyIndex(ucx);
-    return ucx;
-}
-
-StateLimitedFrictionIndex SimbodyMatterSubsystemRep::
-adoptStateLimitedFriction(StateLimitedFriction* child) {
-    assert(child);
-    invalidateSubsystemTopologyCache();
-
-    const StateLimitedFrictionIndex fx(stateLtdFriction.size());
-    stateLtdFriction.push_back(child); // grow
-
-    // Tell the friction object its index within the matter subsystem.
-    child->setMyIndex(fx);
-    return fx;
-}
+//StateLimitedFrictionIndex SimbodyMatterSubsystemRep::
+//adoptStateLimitedFriction(StateLimitedFriction* child) {
+//    assert(child);
+//    invalidateSubsystemTopologyCache();
+//
+//    const StateLimitedFrictionIndex fx(stateLtdFriction.size());
+//    stateLtdFriction.push_back(child); // grow
+//
+//    // Tell the friction object its index within the matter subsystem.
+//    child->setMyIndex(fx);
+//    return fx;
+//}
 
 
 void SimbodyMatterSubsystemRep::createGroundBody() {
@@ -1537,10 +1537,10 @@ int SimbodyMatterSubsystemRep::realizeSubsystemAccelerationImpl(const State& s) 
     // forces accumulated from all the force subsystems. We use these to 
     // compute accelerations, with all results going into the AccelerationCache.
     const MultibodySystem& mbs = getMultibodySystem(); // owner of this subsystem
-    realizeLoopForwardDynamics(s,
-        mbs.getMobilityForces(s, Stage::Dynamics),
-        mbs.getParticleForces(s, Stage::Dynamics),
-        mbs.getRigidBodyForces(s, Stage::Dynamics));
+    //realizeLoopForwardDynamics(s,
+    //    mbs.getMobilityForces(s, Stage::Dynamics),
+    //    mbs.getParticleForces(s, Stage::Dynamics),
+    //    mbs.getRigidBodyForces(s, Stage::Dynamics));
 
     SBStateDigest stateDigest(s, *this, Stage::Acceleration);
 
@@ -5160,28 +5160,28 @@ void SimbodyMatterSubsystemRep::realizeTreeForwardDynamics(
 //==============================================================================
 // Given the set of forces in the state, calculate accelerations resulting from
 // those forces and enforcement of acceleration constraints.
-void SimbodyMatterSubsystemRep::realizeLoopForwardDynamics(const State& s, 
-    const Vector&               mobilityForces,
-    const Vector_<Vec3>&        particleForces,
-    const Vector_<SpatialVec>&  bodyForces) const 
-{
-    // Because we are realizing, we want to direct the output of the operator
-    // back into the State cache.
-    SBTreeAccelerationCache&        tac         = updTreeAccelerationCache(s);
-    SBConstrainedAccelerationCache& cac         = updConstrainedAccelerationCache(s);
-    Vector&                         udot        = updUDot(s);
-    Vector&                         qdotdot     = updQDotDot(s);
-    Vector&                         udotErr     = updUDotErr(s);
-    Vector&                         multipliers = updMultipliers(s);
-
-    calcLoopForwardDynamicsOperator
-       (s, mobilityForces, particleForces, bodyForces,
-        tac, cac, udot, qdotdot, multipliers, udotErr);
-
-    // Since we're realizing, note that we're done with these cache entries.
-    markCacheValueRealized(s, topologyCache.treeAccelerationCacheIndex);
-    markCacheValueRealized(s, topologyCache.constrainedAccelerationCacheIndex);
-}
+//void SimbodyMatterSubsystemRep::realizeLoopForwardDynamics(const State& s, 
+//    const Vector&               mobilityForces,
+//    const Vector_<Vec3>&        particleForces,
+//    const Vector_<SpatialVec>&  bodyForces) const 
+//{
+//    // Because we are realizing, we want to direct the output of the operator
+//    // back into the State cache.
+//    SBTreeAccelerationCache&        tac         = updTreeAccelerationCache(s);
+//    SBConstrainedAccelerationCache& cac         = updConstrainedAccelerationCache(s);
+//    Vector&                         udot        = updUDot(s);
+//    Vector&                         qdotdot     = updQDotDot(s);
+//    Vector&                         udotErr     = updUDotErr(s);
+//    Vector&                         multipliers = updMultipliers(s);
+//
+//    calcLoopForwardDynamicsOperator
+//       (s, mobilityForces, particleForces, bodyForces,
+//        tac, cac, udot, qdotdot, multipliers, udotErr);
+//
+//    // Since we're realizing, note that we're done with these cache entries.
+//    markCacheValueRealized(s, topologyCache.treeAccelerationCacheIndex);
+//    markCacheValueRealized(s, topologyCache.constrainedAccelerationCacheIndex);
+//}
 //....................... REALIZE LOOP FORWARD DYNAMICS ........................
 
 

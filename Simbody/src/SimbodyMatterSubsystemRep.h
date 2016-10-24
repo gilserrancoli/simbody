@@ -483,12 +483,12 @@ public:
     // This is used by projectQ().
     bool normalizeQuaternions(State& s, Vector& qErrest) const;
 
-    int projectQ(State& s, Vector& qErrest, 
+    /*int projectQ(State& s, Vector& qErrest, 
                  const ProjectOptions& opts,
                  ProjectResults& results) const;
     int projectU(State& s, Vector& uErrest, 
                  const ProjectOptions& opts,
-                 ProjectResults& results) const;
+                 ProjectResults& results) const;*/
 
         // REALIZATIONS //
 
@@ -1249,10 +1249,10 @@ public:
     // Given a set of forces, calculate acclerations resulting from
     // those forces and enforcement of acceleration constraints, and update 
     // the state cache with the results.
-    void realizeLoopForwardDynamics(const State&,
-        const Vector&              mobilityForces,
-        const Vector_<Vec3>&       particleForces,
-        const Vector_<SpatialVec>& bodyForces) const;
+    //void realizeLoopForwardDynamics(const State&,
+    //    const Vector&              mobilityForces,
+    //    const Vector_<Vec3>&       particleForces,
+    //    const Vector_<SpatialVec>& bodyForces) const;
 
     // calc ~(Tp Pq Wq^-1)_r (nfq X mp)
     void calcWeightedPqrTranspose(   
