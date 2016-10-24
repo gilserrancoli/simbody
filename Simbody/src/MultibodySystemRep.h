@@ -35,7 +35,7 @@
 #include "simbody/internal/SimbodyMatterSubsystem.h"
 #include "simbody/internal/ForceSubsystem.h"
 #include "simbody/internal/DecorationSubsystem.h"
-#include "simbody/internal/GeneralContactSubsystem.h"
+//#include "simbody/internal/GeneralContactSubsystem.h"
 
 #include "simbody/internal/ForceSubsystemGuts.h"
 #include "SimbodyMatterSubsystemRep.h"
@@ -321,11 +321,13 @@ public:
         decorationSub = adoptSubsystem(d);
         return decorationSub;
     }
+
+	/*#testcomment
     SubsystemIndex setContactSubsystem(GeneralContactSubsystem& c) {
         assert(!contactSub.isValid());
         contactSub = adoptSubsystem(c);
         return contactSub;
-    }
+    }*/
 
     const SimbodyMatterSubsystem& getMatterSubsystem() const {
         assert(matterSub.isValid());
@@ -349,10 +351,11 @@ public:
         return DecorationSubsystem::downcast(getSubsystem(decorationSub));
     }
 
-    const GeneralContactSubsystem& getContactSubsystem() const {
-        assert(contactSub.isValid());
-        return GeneralContactSubsystem::downcast(getSubsystem(contactSub));
-    }
+	//#testcomment
+ //   const GeneralContactSubsystem& getContactSubsystem() const {
+ //       assert(contactSub.isValid());
+ //       return GeneralContactSubsystem::downcast(getSubsystem(contactSub));
+ //   }
 
     SimbodyMatterSubsystem& updMatterSubsystem() {
         assert(matterSub.isValid());
@@ -369,10 +372,12 @@ public:
         assert(decorationSub.isValid());
         return DecorationSubsystem::updDowncast(updSubsystem(decorationSub));
     }
-    GeneralContactSubsystem& updContactSubsystem() {
-        assert(contactSub.isValid());
-        return GeneralContactSubsystem::updDowncast(updSubsystem(contactSub));
-    }
+
+	//#testcomment
+ //   GeneralContactSubsystem& updContactSubsystem() {
+ //       assert(contactSub.isValid());
+ //       return GeneralContactSubsystem::updDowncast(updSubsystem(contactSub));
+ //   }
 
     // Global state cache entries dealing with interaction between forces & 
     // matter.

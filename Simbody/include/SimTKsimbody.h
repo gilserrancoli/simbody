@@ -57,7 +57,7 @@ will include this one). **/
 #include "simbody/internal/ForceSubsystemGuts.h"
 #include "simbody/internal/SimbodyMatterSubsystem.h"
 #include "simbody/internal/SimbodyMatterSubtree.h"
-#include "simbody/internal/GeneralContactSubsystem.h"
+//#include "simbody/internal/GeneralContactSubsystem.h"
 #include "simbody/internal/GeneralForceSubsystem.h"
 #include "simbody/internal/HuntCrossleyContact.h"
 #include "simbody/internal/HuntCrossleyForce.h"

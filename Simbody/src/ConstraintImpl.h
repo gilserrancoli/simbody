@@ -1373,33 +1373,33 @@ void calcPositionDotErrorsVirtual
 //    -------------------------------------
 //    aerr = ~(a_CS_A - 2 w_AB X v_CS_A) * n
 //    -------------------------------------
-void calcPositionDotDotErrorsVirtual      
-   (const State&                                    s,      // Stage::Velocity
-    const Array_<SpatialVec,ConstrainedBodyIndex>&  A_AB, 
-    const Array_<Real,      ConstrainedQIndex>&     constrainedQDotDot,
-    Array_<Real>&                                   paerr)  // mp of these
-    const override
-{
-    assert(A_AB.size()==2 && constrainedQDotDot.size()==0 && paerr.size() == 1);
-    //TODO: should be able to get p and v info from State
-    const Vec3       p_AS = findStationLocationFromState(s, followerBody, 
-                                                         defaultFollowerPoint);
-    const Transform& X_AB = getBodyTransformFromState(s, planeBody);
-    const Vec3       p_BC = ~X_AB * p_AS; // shift to B origin, reexpress in B;
-                                   // C is material point of B coincident with S
-    const UnitVec3   n_A  = X_AB.R() * defaultPlaneNormal;
-
-    const Vec3&      w_AB = getBodyAngularVelocityFromState(s, planeBody);
-    const Vec3       v_AS = findStationVelocityFromState(s, followerBody, 
-                                                         defaultFollowerPoint);
-    const Vec3       v_AC = findStationVelocityFromState(s, planeBody, p_BC);
-
-    const Vec3       a_AS = findStationAcceleration(s, A_AB, followerBody, 
-                                                    defaultFollowerPoint);;
-    const Vec3       a_AC = findStationAcceleration(s, A_AB, planeBody, p_BC);
-
-    paerr[0] = dot( (a_AS-a_AC) - 2.*w_AB % (v_AS-v_AC), n_A );
-}
+//void calcPositionDotDotErrorsVirtual      
+//   (const State&                                    s,      // Stage::Velocity
+//    const Array_<SpatialVec,ConstrainedBodyIndex>&  A_AB, 
+//    const Array_<Real,      ConstrainedQIndex>&     constrainedQDotDot,
+//    Array_<Real>&                                   paerr)  // mp of these
+//    const override
+//{
+//    assert(A_AB.size()==2 && constrainedQDotDot.size()==0 && paerr.size() == 1);
+//    //TODO: should be able to get p and v info from State
+//    const Vec3       p_AS = findStationLocationFromState(s, followerBody, 
+//                                                         defaultFollowerPoint);
+//    const Transform& X_AB = getBodyTransformFromState(s, planeBody);
+//    const Vec3       p_BC = ~X_AB * p_AS; // shift to B origin, reexpress in B;
+//                                   // C is material point of B coincident with S
+//    const UnitVec3   n_A  = X_AB.R() * defaultPlaneNormal;
+//
+//    const Vec3&      w_AB = getBodyAngularVelocityFromState(s, planeBody);
+//    const Vec3       v_AS = findStationVelocityFromState(s, followerBody, 
+//                                                         defaultFollowerPoint);
+//    const Vec3       v_AC = findStationVelocityFromState(s, planeBody, p_BC);
+//
+//    const Vec3       a_AS = findStationAcceleration(s, A_AB, followerBody, 
+//                                                    defaultFollowerPoint);;
+//    const Vec3       a_AC = findStationAcceleration(s, A_AB, planeBody, p_BC);
+//
+//    paerr[0] = dot( (a_AS-a_AC) - 2.*w_AB % (v_AS-v_AC), n_A );
+//}
 
 // apply f=lambda*n to the follower point S of body F,
 //       -f         to point C (coincident point) of body B

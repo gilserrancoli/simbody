@@ -81,25 +81,25 @@ const DecorativeGeometry& Body::getDecoration(int i) const
 DecorativeGeometry& Body::updDecoration(int i) const
 {   return const_cast<DecorativeGeometry&>(getDecoration(i)); }
 
-
-int Body::addContactSurface(const Transform&      X_BS, 
-                            const ContactSurface& surface) {
-    BodyRep& rep = updRep();
-    const int nxt = (int)rep.surfaces.size();
-    rep.surfaces.push_back(std::make_pair(X_BS, surface));
-    rep.surfaces.back().second.setIndexOnBody(nxt);
-    return nxt;
-}
-int Body::getNumContactSurfaces() const 
-{   return (int)getRep().surfaces.size(); }
-const ContactSurface& Body::getContactSurface(int i) const
-{   return getRep().surfaces[i].second; }
-const Transform& Body::getContactSurfaceTransform(int i) const
-{   return getRep().surfaces[i].first; }
-ContactSurface& Body::updContactSurface(int i)
-{   return updRep().surfaces[i].second; }
-Transform& Body::updContactSurfaceTransform(int i)
-{   return updRep().surfaces[i].first; }
+//#Testcomment
+//int Body::addContactSurface(const Transform&      X_BS, 
+//                            const ContactSurface& surface) {
+//    BodyRep& rep = updRep();
+//    const int nxt = (int)rep.surfaces.size();
+//    rep.surfaces.push_back(std::make_pair(X_BS, surface));
+//    rep.surfaces.back().second.setIndexOnBody(nxt);
+//    return nxt;
+//}
+//int Body::getNumContactSurfaces() const 
+//{   return (int)getRep().surfaces.size(); }
+//const ContactSurface& Body::getContactSurface(int i) const
+//{   return getRep().surfaces[i].second; }
+//const Transform& Body::getContactSurfaceTransform(int i) const
+//{   return getRep().surfaces[i].first; }
+//ContactSurface& Body::updContactSurface(int i)
+//{   return updRep().surfaces[i].second; }
+//Transform& Body::updContactSurfaceTransform(int i)
+//{   return updRep().surfaces[i].first; }
 
 const MassProperties& Body::getDefaultRigidBodyMassProperties() const {
     return getRep().getDefaultRigidBodyMassProperties();

@@ -89,7 +89,8 @@ private:
     Body* myHandle;
 
         // TOPOLOGY "STATE" VARIABLES
-    Array_<std::pair<Transform,ContactSurface> >      surfaces;
+	//#testcomment
+ //   Array_<std::pair<Transform,ContactSurface> >      surfaces;
     Array_<DecorativeGeometry>                        decorations;
 };
 

@@ -1080,22 +1080,19 @@ SimTK_NTRAITS_CONJ_SPEC(long double,float);SimTK_NTRAITS_CONJ_SPEC(long double,d
 #undef SimTK_NTRAITS_CONJ_SPEC 
 
 template<> template<> struct NTraits< conjugate<float> >::Result<adouble> 
-{
-	
+{	
 		typedef conjugate<Widest<float, adouble>::Type> W;                                 
 		typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;              
 };
 
 template<> template<> struct NTraits< conjugate<double> >::Result<adouble>
 {
-
 	typedef conjugate<Widest<double, adouble>::Type> W;
 	typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;
 };
 
 template<> template<> struct NTraits< conjugate<long double> >::Result<adouble>
 {
-
 	typedef conjugate<Widest<long double, adouble>::Type> W;
 	typedef W Mul; typedef W Dvd; typedef W Add; typedef W Sub;
 };

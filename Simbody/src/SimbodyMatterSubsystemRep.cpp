@@ -51,6 +51,7 @@ void SimbodyMatterSubsystemRep::clearTopologyState() {
     // Unilateral constraints reference Constraints but not vice versa,
     // so delete the conditional constraints first.
 
+	
     for (UnilateralContactIndex ucx(0); ucx < uniContacts.size(); ++ucx)
         delete uniContacts[ucx];
     uniContacts.clear();
@@ -3565,19 +3566,19 @@ calcGMInvGt(const State&   s,
 // Current implementation computes G*M^-1*~G, factors it, and does a single
 // solve all at great expense.
 // TODO: should realize factored matrix if needed and reuse if possible.
-void SimbodyMatterSubsystemRep::
-solveForConstraintImpulses(const State&     state,
-                           const Vector&    deltaV,
-                           Vector&          impulse) const
-{
-    Matrix GMInvGt;
-    calcGMInvGt(state, GMInvGt);
-    // MUST DUPLICATE SIMBODY'S METHOD HERE:
-    const Real conditioningTol = GMInvGt.nrow() 
-                                    * SqrtEps*sqrt(SqrtEps); // Eps^(3/4)
-    FactorQTZ qtz(GMInvGt, conditioningTol); 
-    qtz.solve(deltaV, impulse);
-}
+//void SimbodyMatterSubsystemRep::
+//solveForConstraintImpulses(const State&     state,
+//                           const Vector&    deltaV,
+//                           Vector&          impulse) const
+//{
+//    Matrix GMInvGt;
+//    calcGMInvGt(state, GMInvGt);
+//    // MUST DUPLICATE SIMBODY'S METHOD HERE:
+//    const Real conditioningTol = GMInvGt.nrow() 
+//                                    * SqrtEps*sqrt(SqrtEps); // Eps^(3/4)
+//    FactorQTZ qtz(GMInvGt, conditioningTol); 
+//    qtz.solve(deltaV, impulse);
+//}
 
 
 
@@ -3850,232 +3851,232 @@ static Real calcQErrestWeightedNormQ(const SimbodyMatterSubsystemRep& matter,
     return Wq_qErrest.normRMS();
 }
 
-void SimbodyMatterSubsystemRep::enforcePositionConstraints
-   (State& s, Real consAccuracy, const Vector& yWeights,
-    const Vector& ooTols, Vector& yErrest, ProjectOptions opts) const
-{
-    assert(getStage(s) >= Stage::Position-1);
-
-    const SBInstanceCache& ic = getInstanceCache(s);
-
-    realizeSubsystemPosition(s);
-
-    // First work only with the holonomic (position) constraints, which appear 
-    // first in the QErr array. Don't work on the quaternion constraints in 
-    // this first section.
-    const int mHolo  = getNumHolonomicConstraintEquationsInUse(s);
-    const int mQuats = getNumQuaternionsInUse(s);
-    const int nq     = getNQ(s);
-    const int nfq    = ic.getTotalNumFreeQ();
-    const int nu     = getNU(s);
-    bool hasPrescribedMotion = (nfq != nq);
-
-    // Wq   = N * Wu    * N^+
-    // Wq^+ = N * Wu^-1 * N^+
-    const VectorView uWeights   = yWeights(nq,nu);
-    const Vector     ooUWeights = uWeights.elementwiseInvert(); //TODO: precalc
-    const VectorView ooPTols  = ooTols(0,mHolo);
-
-    VectorView qErrest = yErrest.size() ? yErrest(0,nq) : yErrest(0,0);
-
-    // This is a const view into the State; the contents it refers to will 
-    // change though.
-    const VectorView pErrs = getQErr(s)(0,mHolo); // just leave off quaternions
-    bool anyChange = false;
-
-    // Check whether we should stop if we see the solution diverging
-    // which should not happen when we're in the neighborhood of a solution
-    // on entry. This is always set while integrating, except during
-    // initialization.
-    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
-
-    // Solve 
-    //        (Tp Pq Wq^+) dq_WLS  = Tp perr
-    //                         dq  = Wq^+ dq_WLS
-    //                          q -= dq
-    // until RMS(Tp perr) <= 0.1*accuracy.
-    //
-    // But Pq=P*N^+, Wq^+=N*Wu^-1*N^+ so Pq Wq^+=P*Wu^-1*N^+. Since N^+ N=I,
-    // we can rewrite the above:
-    //     
-    //    (Tp P Wu^-1 N^+) dq_WLS  = Tp perr
-    //                         dq  = N Wu^-1 N^+ dq_WLS
-    //                          q -= dq
-    //
-    // We define Pqwt = ~Pqw = ~(Tp P Wu^-1 N^+) = ~N^+ Wu^-1 ~P Tp
-    // (diagonal weights are symmetric). We only retain rows that 
-    // correspond to free (non prescribed) q's.
-    //
-    // This is a nonlinear least squares problem. Below is a full Newton 
-    // iteration since we recalculate the iteration matrix each time around the
-    // loop. TODO: a solution could be found using the same iteration matrix, 
-    // since we are projecting from (presumably) not too far away. Q1: will it
-    // be the same solution? Q2: if not, does it matter?
-    Vector scaledPerrs = pErrs.rowScale(ooPTols);
-    Real normAchievedTRMS = scaledPerrs.normRMS();
-
-    Real lastChangeMadeWRMS = 0; // size of last change in weighted dq
-    int nItsUsed = 0;
-
-    // Set how far past the required tolerance we'll attempt to go. 
-    // We only fail if we can't achieve consAccuracy, but while we're
-    // solving we'll see if we can get consAccuracyToTryFor.
-    const Real consAccuracyToTryFor = 
-        fmax(Real(0.1)*consAccuracy, SignificantReal);
-
-    // Conditioning tolerance. This determines when we'll drop a 
-    // constraint. 
-    // TODO: this is sloppy; should depend on constraint tolerance
-    // and rank should be saved and reused in velocity and acceleration
-    // constraint methods (or should be calculated elsewhere and passed in).
-    const Real conditioningTol = mHolo         
-      //* SignificantReal; -- too tight
-        * SqrtEps;
-
-    if (normAchievedTRMS > consAccuracyToTryFor) {
-        Vector saveQ = getQ(s);
-        Matrix Pqwrt(nfq,mHolo);
-        Vector dfq_WLS(nfq), du(nu), dq(nq); // = Wq^+ dq_WLS
-        Vector udfq_WLS(hasPrescribedMotion ? nq : 0); // unpacked if needed
-        udfq_WLS.setToZero(); // must initialize unwritten elements
-        FactorQTZ Pqwr_qtz;
-        Real prevNormAchievedTRMS = normAchievedTRMS; // watch for divergence
-        const int MaxIterations  = 20;
-        do {
-            calcWeightedPqrTranspose(s, ooPTols, ooUWeights, Pqwrt);//nfq X mp
-
-            // This factorization acts like a pseudoinverse.
-            Pqwr_qtz.factor<Real>(~Pqwrt, conditioningTol); 
-
-            //printf("enforcePositionConstraints %d: condTol=%g rank=%d rcond=%g\n",
-            //    nItsUsed, conditioningTol, Pqwr_qtz.getRank(),
-            //    Pqwr_qtz.getRCondEstimate());
-
-            Pqwr_qtz.solve(scaledPerrs, dfq_WLS); // this is weighted dq_WLS=Wq*dq
-            lastChangeMadeWRMS = dfq_WLS.normRMS(); // change in weighted norm
-
-            // switch back to unweighted dq=Wq^+*dq_WLS
-            // = N * Wu^-1 * N^+ * dq_WLS
-            if (hasPrescribedMotion) {
-                unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
-                multiplyByNInv(s,false,udfq_WLS,du);
-            } else {
-                multiplyByNInv(s,false,dfq_WLS,du);
-            }
-
-            du.rowScaleInPlace(ooUWeights); // in place to save memory
-            multiplyByN(s,false,du,dq);
-
-            // This causes quaternions to become unnormalized, but it doesn't
-            // matter because N is calculated from the unnormalized q's so
-            // scales dq to match.
-            updQ(s) -= dq; // this is unweighted dq
-            anyChange = true;
-
-            // Now recalculate the position constraint errors at the new q.
-            realizeSubsystemPosition(s); // pErrs changes here
-
-            scaledPerrs = pErrs.rowScale(ooPTols); // Tp * pErrs
-            normAchievedTRMS = scaledPerrs.normRMS();
-            ++nItsUsed;
-
-            if (localOnly && nItsUsed >= 2 
-                && normAchievedTRMS > prevNormAchievedTRMS) {
-                // perr norm got worse; restore to end of previous iteration
-                updQ(s) += dq;
-                realizeSubsystemPosition(s); // pErrs changes here
-                scaledPerrs = pErrs.rowScale(ooPTols);
-                normAchievedTRMS = scaledPerrs.normRMS();
-                break; // diverging -- quit now to prevent a bad solution
-            }
-
-            prevNormAchievedTRMS = normAchievedTRMS;
-
-        } while (normAchievedTRMS > consAccuracyToTryFor
-                 && nItsUsed < MaxIterations);
-
-        // Make sure we achieved at least the required constraint accuracy.
-        if (normAchievedTRMS > consAccuracy) {
-            updQ(s) = saveQ; // revert
-            realizeSubsystemPosition(s);
-            SimTK_THROW1(Exception::NewtonRaphsonFailure, 
-                         "Failed to converge in position projection");
-        }
-
-
-        // Next, if we projected out the position constraint errors, remove the
-        // corresponding error from the integrator's error estimate.
-        //
-        //    (Tp Pq Wq^+)_r dqr_WLS = (Tp Pq Wq^+)_r (Wq*qErrest)_r
-        //                    dq_WLS = unpack(dqr_WLS) (with zero fill)
-        //                       dq  = Wq^+ dq_WLS
-        //                           = N Wu^-1 N^+ dq_WLS
-        //                  qErrest -= dq
-        // No iteration is required.
-        //
-        // We can simplify the RHS of the first equation above:
-        //        (Tp Pq Wq^+)_r (Wq qErrest)_r = Tp Pq unpack(qErrest_r)
-        // for which we have an O(n) operator to use for the matrix-vector 
-        // product. (Proof: expand Pq, Wq^+, and Wq and cancel Wu^-1*Wu and
-        // N^+*N.)
-        if (qErrest.size()) {
-            // Work in Wq-norm
-            Vector Tp_Pq_qErrest, bias_p;
-            calcBiasForMultiplyByPq(s, bias_p);
-
-            // Switch back to unweighted dq=Wq^+*dq_WLS
-            // = N * Wu^-1 * N^+ * dq_WLS
-            if (hasPrescribedMotion) {
-                Vector qErrest_0(qErrest);
-                zeroKnownQ(s, qErrest_0); // zero out prescribed entries
-                multiplyByPq(s, bias_p, qErrest_0, Tp_Pq_qErrest); // (Pq*qErrest)_r
-                Tp_Pq_qErrest.rowScaleInPlace(ooPTols); // now Tp*(Pq*qErrest)_r
-                Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
-                unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
-                multiplyByNInv(s,false,udfq_WLS,du);
-            } else {
-                multiplyByPq(s, bias_p, qErrest, Tp_Pq_qErrest); // Pq*qErrest
-                Tp_Pq_qErrest.rowScaleInPlace(ooPTols); // now Tp*Pq*qErrest
-                Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
-                multiplyByNInv(s,false,dfq_WLS,du);
-            }
-
-            du.rowScaleInPlace(ooUWeights); // in place to save memory
-            multiplyByN(s,false,du,dq);
-            qErrest -= dq; // unweighted
-        }
-    }
-
-    //cout << "!!!! perr TRMS achieved " << normAchievedTRMS << " in " 
-    //     << nItsUsed << " iterations"  << endl;
-
-    // By design, normalization of quaternions can't have any effect on the 
-    // length constraints we just fixed (because we normalize internally for 
-    // calculations). So now we can simply normalize the quaternions.
-    // Don't touch any q's that are prescribed, though.
-    if (mQuats) {
-        SBStateDigest sbs(s, *this, Stage::Model);
-        Vector& q  = updQ(s); // invalidates q's. TODO: see below.
-
-        for (int i=0 ; i<(int)rbNodeLevels.size() ; i++) 
-            for (int j=0 ; j<(int)rbNodeLevels[i].size() ; j++) { 
-                const RigidBodyNode& node = *rbNodeLevels[i][j];
-                const SBInstancePerMobodInfo& mobodInfo =
-                    ic.mobodInstanceInfo[node.getNodeNum()];
-                if (mobodInfo.qMethod != Motion::Free)
-                    continue;
-
-                if (node.enforceQuaternionConstraints(sbs,q,qErrest))
-                    anyChange = true;
-            }
-
-        // This will recalculate the qnorms (all 1), qerrs (all 0). The only
-        // other quaternion dependency is the N matrix (and NInv, NDot).
-        // TODO: better if these updates could be made without invalidating
-        // Position stage in general. I *think* N is always calculated on they fly.
-        realizeSubsystemPosition(s);
-    }
-}
+//void SimbodyMatterSubsystemRep::enforcePositionConstraints
+//   (State& s, Real consAccuracy, const Vector& yWeights,
+//    const Vector& ooTols, Vector& yErrest, ProjectOptions opts) const
+//{
+//    assert(getStage(s) >= Stage::Position-1);
+//
+//    const SBInstanceCache& ic = getInstanceCache(s);
+//
+//    realizeSubsystemPosition(s);
+//
+//    // First work only with the holonomic (position) constraints, which appear 
+//    // first in the QErr array. Don't work on the quaternion constraints in 
+//    // this first section.
+//    const int mHolo  = getNumHolonomicConstraintEquationsInUse(s);
+//    const int mQuats = getNumQuaternionsInUse(s);
+//    const int nq     = getNQ(s);
+//    const int nfq    = ic.getTotalNumFreeQ();
+//    const int nu     = getNU(s);
+//    bool hasPrescribedMotion = (nfq != nq);
+//
+//    // Wq   = N * Wu    * N^+
+//    // Wq^+ = N * Wu^-1 * N^+
+//    const VectorView uWeights   = yWeights(nq,nu);
+//    const Vector     ooUWeights = uWeights.elementwiseInvert(); //TODO: precalc
+//    const VectorView ooPTols  = ooTols(0,mHolo);
+//
+//    VectorView qErrest = yErrest.size() ? yErrest(0,nq) : yErrest(0,0);
+//
+//    // This is a const view into the State; the contents it refers to will 
+//    // change though.
+//    const VectorView pErrs = getQErr(s)(0,mHolo); // just leave off quaternions
+//    bool anyChange = false;
+//
+//    // Check whether we should stop if we see the solution diverging
+//    // which should not happen when we're in the neighborhood of a solution
+//    // on entry. This is always set while integrating, except during
+//    // initialization.
+//    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
+//
+//    // Solve 
+//    //        (Tp Pq Wq^+) dq_WLS  = Tp perr
+//    //                         dq  = Wq^+ dq_WLS
+//    //                          q -= dq
+//    // until RMS(Tp perr) <= 0.1*accuracy.
+//    //
+//    // But Pq=P*N^+, Wq^+=N*Wu^-1*N^+ so Pq Wq^+=P*Wu^-1*N^+. Since N^+ N=I,
+//    // we can rewrite the above:
+//    //     
+//    //    (Tp P Wu^-1 N^+) dq_WLS  = Tp perr
+//    //                         dq  = N Wu^-1 N^+ dq_WLS
+//    //                          q -= dq
+//    //
+//    // We define Pqwt = ~Pqw = ~(Tp P Wu^-1 N^+) = ~N^+ Wu^-1 ~P Tp
+//    // (diagonal weights are symmetric). We only retain rows that 
+//    // correspond to free (non prescribed) q's.
+//    //
+//    // This is a nonlinear least squares problem. Below is a full Newton 
+//    // iteration since we recalculate the iteration matrix each time around the
+//    // loop. TODO: a solution could be found using the same iteration matrix, 
+//    // since we are projecting from (presumably) not too far away. Q1: will it
+//    // be the same solution? Q2: if not, does it matter?
+//    Vector scaledPerrs = pErrs.rowScale(ooPTols);
+//    Real normAchievedTRMS = scaledPerrs.normRMS();
+//
+//    Real lastChangeMadeWRMS = 0; // size of last change in weighted dq
+//    int nItsUsed = 0;
+//
+//    // Set how far past the required tolerance we'll attempt to go. 
+//    // We only fail if we can't achieve consAccuracy, but while we're
+//    // solving we'll see if we can get consAccuracyToTryFor.
+//    const Real consAccuracyToTryFor = 
+//        fmax(Real(0.1)*consAccuracy, SignificantReal);
+//
+//    // Conditioning tolerance. This determines when we'll drop a 
+//    // constraint. 
+//    // TODO: this is sloppy; should depend on constraint tolerance
+//    // and rank should be saved and reused in velocity and acceleration
+//    // constraint methods (or should be calculated elsewhere and passed in).
+//    const Real conditioningTol = mHolo         
+//      //* SignificantReal; -- too tight
+//        * SqrtEps;
+//
+//    if (normAchievedTRMS > consAccuracyToTryFor) {
+//        Vector saveQ = getQ(s);
+//        Matrix Pqwrt(nfq,mHolo);
+//        Vector dfq_WLS(nfq), du(nu), dq(nq); // = Wq^+ dq_WLS
+//        Vector udfq_WLS(hasPrescribedMotion ? nq : 0); // unpacked if needed
+//        udfq_WLS.setToZero(); // must initialize unwritten elements
+//        FactorQTZ Pqwr_qtz;
+//        Real prevNormAchievedTRMS = normAchievedTRMS; // watch for divergence
+//        const int MaxIterations  = 20;
+//        do {
+//            calcWeightedPqrTranspose(s, ooPTols, ooUWeights, Pqwrt);//nfq X mp
+//
+//            // This factorization acts like a pseudoinverse.
+//            Pqwr_qtz.factor<Real>(~Pqwrt, conditioningTol); 
+//
+//            //printf("enforcePositionConstraints %d: condTol=%g rank=%d rcond=%g\n",
+//            //    nItsUsed, conditioningTol, Pqwr_qtz.getRank(),
+//            //    Pqwr_qtz.getRCondEstimate());
+//
+//            Pqwr_qtz.solve(scaledPerrs, dfq_WLS); // this is weighted dq_WLS=Wq*dq
+//            lastChangeMadeWRMS = dfq_WLS.normRMS(); // change in weighted norm
+//
+//            // switch back to unweighted dq=Wq^+*dq_WLS
+//            // = N * Wu^-1 * N^+ * dq_WLS
+//            if (hasPrescribedMotion) {
+//                unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
+//                multiplyByNInv(s,false,udfq_WLS,du);
+//            } else {
+//                multiplyByNInv(s,false,dfq_WLS,du);
+//            }
+//
+//            du.rowScaleInPlace(ooUWeights); // in place to save memory
+//            multiplyByN(s,false,du,dq);
+//
+//            // This causes quaternions to become unnormalized, but it doesn't
+//            // matter because N is calculated from the unnormalized q's so
+//            // scales dq to match.
+//            updQ(s) -= dq; // this is unweighted dq
+//            anyChange = true;
+//
+//            // Now recalculate the position constraint errors at the new q.
+//            realizeSubsystemPosition(s); // pErrs changes here
+//
+//            scaledPerrs = pErrs.rowScale(ooPTols); // Tp * pErrs
+//            normAchievedTRMS = scaledPerrs.normRMS();
+//            ++nItsUsed;
+//
+//            if (localOnly && nItsUsed >= 2 
+//                && normAchievedTRMS > prevNormAchievedTRMS) {
+//                // perr norm got worse; restore to end of previous iteration
+//                updQ(s) += dq;
+//                realizeSubsystemPosition(s); // pErrs changes here
+//                scaledPerrs = pErrs.rowScale(ooPTols);
+//                normAchievedTRMS = scaledPerrs.normRMS();
+//                break; // diverging -- quit now to prevent a bad solution
+//            }
+//
+//            prevNormAchievedTRMS = normAchievedTRMS;
+//
+//        } while (normAchievedTRMS > consAccuracyToTryFor
+//                 && nItsUsed < MaxIterations);
+//
+//        // Make sure we achieved at least the required constraint accuracy.
+//        if (normAchievedTRMS > consAccuracy) {
+//            updQ(s) = saveQ; // revert
+//            realizeSubsystemPosition(s);
+//            SimTK_THROW1(Exception::NewtonRaphsonFailure, 
+//                         "Failed to converge in position projection");
+//        }
+//
+//
+//        // Next, if we projected out the position constraint errors, remove the
+//        // corresponding error from the integrator's error estimate.
+//        //
+//        //    (Tp Pq Wq^+)_r dqr_WLS = (Tp Pq Wq^+)_r (Wq*qErrest)_r
+//        //                    dq_WLS = unpack(dqr_WLS) (with zero fill)
+//        //                       dq  = Wq^+ dq_WLS
+//        //                           = N Wu^-1 N^+ dq_WLS
+//        //                  qErrest -= dq
+//        // No iteration is required.
+//        //
+//        // We can simplify the RHS of the first equation above:
+//        //        (Tp Pq Wq^+)_r (Wq qErrest)_r = Tp Pq unpack(qErrest_r)
+//        // for which we have an O(n) operator to use for the matrix-vector 
+//        // product. (Proof: expand Pq, Wq^+, and Wq and cancel Wu^-1*Wu and
+//        // N^+*N.)
+//        if (qErrest.size()) {
+//            // Work in Wq-norm
+//            Vector Tp_Pq_qErrest, bias_p;
+//            calcBiasForMultiplyByPq(s, bias_p);
+//
+//            // Switch back to unweighted dq=Wq^+*dq_WLS
+//            // = N * Wu^-1 * N^+ * dq_WLS
+//            if (hasPrescribedMotion) {
+//                Vector qErrest_0(qErrest);
+//                zeroKnownQ(s, qErrest_0); // zero out prescribed entries
+//                multiplyByPq(s, bias_p, qErrest_0, Tp_Pq_qErrest); // (Pq*qErrest)_r
+//                Tp_Pq_qErrest.rowScaleInPlace(ooPTols); // now Tp*(Pq*qErrest)_r
+//                Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
+//                unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
+//                multiplyByNInv(s,false,udfq_WLS,du);
+//            } else {
+//                multiplyByPq(s, bias_p, qErrest, Tp_Pq_qErrest); // Pq*qErrest
+//                Tp_Pq_qErrest.rowScaleInPlace(ooPTols); // now Tp*Pq*qErrest
+//                Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
+//                multiplyByNInv(s,false,dfq_WLS,du);
+//            }
+//
+//            du.rowScaleInPlace(ooUWeights); // in place to save memory
+//            multiplyByN(s,false,du,dq);
+//            qErrest -= dq; // unweighted
+//        }
+//    }
+//
+//    //cout << "!!!! perr TRMS achieved " << normAchievedTRMS << " in " 
+//    //     << nItsUsed << " iterations"  << endl;
+//
+//    // By design, normalization of quaternions can't have any effect on the 
+//    // length constraints we just fixed (because we normalize internally for 
+//    // calculations). So now we can simply normalize the quaternions.
+//    // Don't touch any q's that are prescribed, though.
+//    if (mQuats) {
+//        SBStateDigest sbs(s, *this, Stage::Model);
+//        Vector& q  = updQ(s); // invalidates q's. TODO: see below.
+//
+//        for (int i=0 ; i<(int)rbNodeLevels.size() ; i++) 
+//            for (int j=0 ; j<(int)rbNodeLevels[i].size() ; j++) { 
+//                const RigidBodyNode& node = *rbNodeLevels[i][j];
+//                const SBInstancePerMobodInfo& mobodInfo =
+//                    ic.mobodInstanceInfo[node.getNodeNum()];
+//                if (mobodInfo.qMethod != Motion::Free)
+//                    continue;
+//
+//                if (node.enforceQuaternionConstraints(sbs,q,qErrest))
+//                    anyChange = true;
+//            }
+//
+//        // This will recalculate the qnorms (all 1), qerrs (all 0). The only
+//        // other quaternion dependency is the N matrix (and NInv, NDot).
+//        // TODO: better if these updates could be made without invalidating
+//        // Position stage in general. I *think* N is always calculated on they fly.
+//        realizeSubsystemPosition(s);
+//    }
+//}
 //........................ ENFORCE POSITION CONSTRAINTS ........................
 
 
@@ -4093,353 +4094,353 @@ void SimbodyMatterSubsystemRep::enforcePositionConstraints
 //   multiplying these matrices by columns, but not for producing Wq so we 
 //   just create it operationally as we go.
 
-int SimbodyMatterSubsystemRep::projectQ
-   (State&                  s, 
-    Vector&                 qErrest, // q error estimate or empty 
-    const ProjectOptions&   opts, 
-    ProjectResults&         results) const
-{
-    SimTK_STAGECHECK_GE(getStage(s), Stage::Position,
-        "SimbodyMatterSubsystemRep::projectQ()");
-
-    results.clear();
-    const Real consAccuracy = opts.getRequiredAccuracy();
-    // Normally we'll use an RMS norm for the perrs.
-    const bool useNormInf = opts.isOptionSet(ProjectOptions::UseInfinityNorm);
-    // Force projection even if accuracy ok on entry.
-    const bool forceOneIter = opts.isOptionSet(ProjectOptions::ForceProjection);
-    // Normally we'll throw an exception with a helpful message. If this is
-    // set we'll quietly return status instead.
-    const bool dontThrow = opts.isOptionSet(ProjectOptions::DontThrow);
-
-    const int mHolo  = getNumHolonomicConstraintEquationsInUse(s);
-    const int mQuats = getNumQuaternionsInUse(s);
-
-    // This is a const view into the State; the contents it refers to will 
-    // change though.
-    const VectorView pErrs = getQErr(s)(0,mHolo); // just leave off quaternions
-    const VectorView quatErrs = getQErr(s)(mHolo,mQuats); // quaternions
-
-    // We don't weight the quaternion errors.
-    const VectorView perrWeights = getQErrWeights(s)(0,mHolo); // 1/unit error (Tp)
-
-    // Determine norms on entry.
-    int worstPerr, worstQuatErr;
-    Vector scaledPerrs = pErrs.rowScale(perrWeights);
-    const Real perrNormOnEntry = useNormInf ? scaledPerrs.normInf(&worstPerr)
-                                            : scaledPerrs.normRMS(&worstPerr);
-    const Real quatNormOnEntry = useNormInf ? quatErrs.normInf(&worstQuatErr)
-                                            : quatErrs.normRMS(&worstQuatErr);
-    
-    Real normOnEntry;
-    if (perrNormOnEntry >= quatNormOnEntry) {
-        results.setNormOnEntrance(perrNormOnEntry, worstPerr);
-        normOnEntry = perrNormOnEntry;
-    }
-    else {
-        results.setNormOnEntrance(quatNormOnEntry, mHolo + worstQuatErr);
-        normOnEntry = quatNormOnEntry;
-    }
-
-    if (normOnEntry > opts.getProjectionLimit()) {
-        results.setProjectionLimitExceeded(true);
-        results.setExitStatus(ProjectResults::FailedToConverge);
-        return 1;
-    }
-
-
-    // Return quickly if (a) constraint norm is zero (probably because there
-    // aren't any), or (b) constraints are already satisfied and we're
-    // being forced to go ahead anyway.
-    if (    perrNormOnEntry == 0 
-        || (perrNormOnEntry <= consAccuracy && !forceOneIter)) {
-        // Perrs are good enough already. Might still need to project
-        // quaternions, but that doesn't take long. The only way this can
-        // fail is if some of the quaternions are prescribed but prescribedQ()
-        // wasn't called earlier as it should have been..
-        if (quatNormOnEntry > consAccuracy || forceOneIter) {
-            const bool anyQuatChange = normalizeQuaternions(s,qErrest);
-            results.setAnyChangeMade(anyQuatChange);
-            const Real quatNorm = useNormInf ? quatErrs.normInf(&worstQuatErr)
-                                             : quatErrs.normRMS(&worstQuatErr);
-            results.setNormOnExit(quatNorm);
-            if (quatNorm > consAccuracy) {
-                results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
-                if (!dontThrow) {
-                    SimTK_ERRCHK2_ALWAYS(quatNorm <= consAccuracy, 
-                         "SimbodyMatterSubsystem::projectQ()",
-                         "Failed to normalize quaternions. Norm achieved=%g"
-                         " but required norm=%g. Did you forget to call"
-                         " prescribeQ()?", quatNorm, consAccuracy);
-                }
-                return 1;
-            }
-        } else {    // both perrs and quatErrs were good on entry
-            // numIterations==0.
-            results.setAnyChangeMade(false);
-            results.setNormOnExit(normOnEntry);
-        }
-        results.setExitStatus(ProjectResults::Succeeded);
-        return 0;
-    }
-
-
-    // We're going to have to project constraints. Get the remaining options.
-
-
-    // This is the factor by which we try to achieve a tighter accuracy
-    // than requested. E.g. if overshootFactor=0.1 then we attempt 10X 
-    // tighter accuracy if we can get it. But we won't fail as long as
-    // we manage to reach consAccuracy.
-    const Real overshootFactor = opts.getOvershootFactor();
-    const Real consAccuracyToTryFor = 
-        fmax(overshootFactor*consAccuracy, SignificantReal);
-
-    // Check whether we should stop if we see the solution diverging
-    // which should not happen when we're in the neighborhood of a solution
-    // on entry. This is always set while integrating, except during
-    // initialization.
-    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
-    // We are permitted to use an out-of-date Jacobian for projection unless
-    // this is set. TODO: always using full Newton at the moment.
-    const bool forceFullNewton =
-        opts.isOptionSet(ProjectOptions::ForceFullNewton);
-
-    // Get problem dimensions.
-    const SBInstanceCache& ic = getInstanceCache(s);
-    const int nq     = getNQ(s);
-    const int nfq    = ic.getTotalNumFreeQ();
-    const int nu     = getNU(s);
-    const bool hasPrescribedMotion = (nfq != nq);
-
-    // Solve 
-    //        (Tp Pq Wq^+) dq_WLS  = Tp perr
-    //                         dq  = Wq^+ dq_WLS
-    //                          q -= dq
-    // until RMS(Tp perr) <= 0.1*accuracy.
-    //
-    // But Pq=P*N^+, Wq^+=N*Wu^-1*N^+ so Pq Wq^+=P*Wu^-1*N^+. Since N^+ N=I,
-    // we can rewrite the above:
-    //     
-    //    (Tp P Wu^-1 N^+) dq_WLS  = Tp perr
-    //                         dq  = N Wu^-1 N^+ dq_WLS
-    //                          q -= dq
-    //
-    // We define Pqwt = ~Pqw = ~(Tp P Wu^-1 N^+) = ~N^+ Wu^-1 ~P Tp
-    // (diagonal weights are symmetric). We only retain rows that 
-    // correspond to free (non prescribed) q's.
-    //
-    // This is a nonlinear least squares problem. Below is a full Newton 
-    // iteration since we recalculate the iteration matrix each time around the
-    // loop. TODO: a solution could be found using the same iteration matrix, 
-    // since we are projecting from (presumably) not too far away. Q1: will it
-    // be the same solution? Q2: if not, does it matter?
-
-    // These will be updated as we go.
-    Real perrNormAchieved = perrNormOnEntry;
-    Real quatNormAchieved = quatNormOnEntry;
-
-    // We always use absolute scaling for q's, derived from the absolute
-    // scaling of u's.
-    const Vector& uWeights = getUWeights(s);    // 1/unit change (Wu)
-    const Vector uAbsScale = uWeights.elementwiseInvert(); // Wu^-1
-
-    Real lastChangeMadeWRMS = 0; // size of last change in weighted dq
-    int nItsUsed = 0;
-
-
-    // Conditioning tolerance. This determines when we'll drop a 
-    // constraint. 
-    // TODO: this is sloppy; should depend on constraint tolerance
-    // and rank should be saved and reused in velocity and acceleration
-    // constraint methods (or should be calculated elsewhere and passed in).
-    const Real conditioningTol = mHolo         
-      //* SignificantReal; -- too tight
-        * SqrtEps;
-
-    // Keep the starting q in case we have to restore it, which we'll do
-    // if the attempts here make the constraint norm worse.
-    const Vector saveQ = getQ(s);
-
-    Matrix Pqwrt(nfq,mHolo);
-    Vector dfq_WLS(nfq), du(nu), dq(nq); // = Wq^+ dq_WLS
-    Vector udfq_WLS(hasPrescribedMotion ? nq : 0); // unpacked if needed
-    udfq_WLS.setToZero(); // must initialize unwritten elements
-    FactorQTZ Pqwr_qtz;
-    Real prevPerrNormAchieved = perrNormAchieved; // watch for divergence
-    bool diverged = false;
-    const int MaxIterations  = 20;
-    do {
-        calcWeightedPqrTranspose(s, perrWeights, uAbsScale, Pqwrt);//nfq X mp
-
-        // This factorization acts like a pseudoinverse.
-        Pqwr_qtz.factor<Real>(~Pqwrt, conditioningTol); 
-
-        //printf("projectQ %d: m=%d condTol=%g rank=%d rcond=%g\n",
-        //    nItsUsed, Pqwrt.ncol(), conditioningTol, Pqwr_qtz.getRank(),
-        //    Pqwr_qtz.getRCondEstimate());
-
-        Pqwr_qtz.solve(scaledPerrs, dfq_WLS); // this is weighted dq_WLS=Wq*dq
-        lastChangeMadeWRMS = dfq_WLS.normRMS(); // change in weighted norm
-
-        // switch back to unweighted dq=Wq^+*dq_WLS
-        // = N * Wu^-1 * N^+ * dq_WLS
-        if (hasPrescribedMotion) {
-            unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
-            multiplyByNInv(s,false,udfq_WLS,du);
-        } else {
-            multiplyByNInv(s,false,dfq_WLS,du);
-        }
-        // Here du = du_WLS = N^+ * dq_WLS
-        du.rowScaleInPlace(uAbsScale); // Now du = Wu^-1 * du_WLS.
-        multiplyByN(s,false,du,dq);     // dq = N*du
-
-        // This causes quaternions to become unnormalized, but it doesn't
-        // matter because N is calculated from the unnormalized q's so
-        // scales dq to match.
-        updQ(s) -= dq; // this is unweighted dq
-        results.setAnyChangeMade(true);
-
-        // Now recalculate the position constraint errors at the new q.
-        realizeSubsystemPosition(s); // pErrs changes here
-
-        scaledPerrs = pErrs.rowScale(perrWeights); // Tp * pErrs
-        perrNormAchieved = useNormInf ? scaledPerrs.normInf()
-                                      : scaledPerrs.normRMS();
-        ++nItsUsed;
-
-        if (localOnly && nItsUsed >= 2 
-            && perrNormAchieved > prevPerrNormAchieved) {
-            // perr norm got worse; restore to end of previous iteration
-            updQ(s) += dq;
-            realizeSubsystemPosition(s); // pErrs changes here
-            scaledPerrs = pErrs.rowScale(perrWeights);
-            perrNormAchieved = useNormInf ? scaledPerrs.normInf()
-                                          : scaledPerrs.normRMS();
-            diverged = true;
-            break; // diverging -- quit now to prevent a bad solution
-        }
-
-        prevPerrNormAchieved = perrNormAchieved;
-
-    } while (perrNormAchieved > consAccuracyToTryFor
-                && nItsUsed < MaxIterations);
-
-    results.setNumIterations(nItsUsed);
-
-    //printf("        perrNormAchieved=%g in %d its\n",perrNormAchieved, nItsUsed);
-
-    // Make sure we achieved at least the required constraint accuracy. If not 
-    // we'll return with an error. If we see that the norm has been made worse
-    // than it was on entry, we'll restore the state to what it was on entry. 
-    // Otherwise we'll return with the improved-but-not-good-enough result.
-    if (perrNormAchieved > consAccuracy) {
-        if (perrNormAchieved >= perrNormOnEntry) { // made it worse
-            updQ(s) = saveQ; // revert
-            realizeSubsystemPosition(s);
-            perrNormAchieved = perrNormOnEntry;
-        }
-     
-        results.setNormOnExit(perrNormAchieved);
-
-        if (diverged) {
-            results.setExitStatus(ProjectResults::FailedToConverge);
-            if (!dontThrow) {
-                SimTK_ERRCHK_ALWAYS(!diverged,
-                    "SimbodyMatterSubsystem::projectQ()",
-                    "Attempt to project constraints locally diverged.");
-            }
-        } else {
-            results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
-            if (!dontThrow) {
-                SimTK_ERRCHK3_ALWAYS(perrNormAchieved <= consAccuracy, 
-                    "SimbodyMatterSubsystem::projectQ()",
-                    "Failed to achieve required accuracy %g. Norm on entry "
-                    " was %g; norm on exit %g. You might need a better"
-                    " starting configuration, or if there are prescribed or "
-                    " locked q's you might have to free some of them.", 
-                    consAccuracy, perrNormOnEntry, perrNormAchieved);
-            }
-        }
-
-        return 1;
-    }
-
-    // Position constraint errors were successfully driven to consAccuracy.
-
-    // Next, remove the corresponding error from the integrator's error 
-    // estimate.
-    //
-    //    (Tp Pq Wq^+)_r dqr_WLS = (Tp Pq Wq^+)_r (Wq*qErrest)_r
-    //                    dq_WLS = unpack(dqr_WLS) (with zero fill)
-    //                       dq  = Wq^+ dq_WLS
-    //                           = N Wu^-1 N^+ dq_WLS
-    //                  qErrest -= dq
-    // No iteration is required.
-    //
-    // We can simplify the RHS of the first equation above:
-    //        (Tp Pq Wq^+)_r (Wq qErrest)_r = Tp Pq unpack(qErrest_r)
-    // for which we have an O(n) operator to use for the matrix-vector 
-    // product. (Proof: expand Pq, Wq^+, and Wq and cancel Wu^-1*Wu and
-    // N^+*N.)
-    if (qErrest.size()) {
-        // Work in Wq-norm
-        Vector Tp_Pq_qErrest, bias_p;
-        calcBiasForMultiplyByPq(s, bias_p);
-
-        // Switch back to unweighted dq = Wq^+ * dq_WLS
-        // = N * Wu^-1 * N^+ * dq_WLS
-        if (hasPrescribedMotion) {
-            Vector qErrest_0(qErrest);
-            zeroKnownQ(s, qErrest_0); // zero out prescribed entries
-            multiplyByPq(s, bias_p, qErrest_0, Tp_Pq_qErrest); // (Pq*qErrest)_r
-            Tp_Pq_qErrest.rowScaleInPlace(perrWeights); // now Tp*(Pq*qErrest)_r
-            Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
-            unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
-            multiplyByNInv(s,false,udfq_WLS,du);
-        } else {
-            multiplyByPq(s, bias_p, qErrest, Tp_Pq_qErrest); // Pq*qErrest
-            Tp_Pq_qErrest.rowScaleInPlace(perrWeights); // now Tp*Pq*qErrest
-            Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
-            multiplyByNInv(s,false,dfq_WLS,du);
-        }
-        // Here du = du_WLS = N^+ * dq_WLS
-        du.rowScaleInPlace(uAbsScale); // now du = Wu^-1 * du_WLS
-        multiplyByN(s,false,du,dq);     // dq = N*du
-        qErrest -= dq; // unweighted
-    }
-
-    //cout << "!!!! perr TRMS achieved " << normAchievedTRMS << " in " 
-    //     << nItsUsed << " iterations"  << endl;
-
-    // By design, normalization of quaternions can't have any effect on the 
-    // constraints we just fixed (because we normalize internally for 
-    // calculations). So now we can simply normalize the quaternions.
-    // We can't touch any q's that are prescribed, though, so it is 
-    // possible that we'll fail to achieve the required tolerance if some
-    // quaterion is prescribed but not up to date.
-    if (mQuats) {
-        const bool anyQuatChange = normalizeQuaternions(s,qErrest);
-        if (anyQuatChange) results.setAnyChangeMade(true);
-        quatNormAchieved = useNormInf ? quatErrs.normInf(&worstQuatErr)
-                                      : quatErrs.normRMS(&worstQuatErr);
-        if (quatNormAchieved > consAccuracy) {
-            results.setNormOnExit(quatNormAchieved);
-            results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
-            if (!dontThrow) {
-                SimTK_ERRCHK2_ALWAYS(quatNormAchieved <= consAccuracy, 
-                        "SimbodyMatterSubsystem::projectQ()",
-                        "Failed to normalize quaternions. Norm achieved=%g"
-                        " but required norm=%g. Did you forget to call"
-                        " prescribeQ()?", quatNormAchieved, consAccuracy);
-            }
-            return 1;
-        }
-    }
-    results.setNormOnExit(std::max(perrNormAchieved, quatNormAchieved));
-    results.setExitStatus(ProjectResults::Succeeded);
-    return 0;
-}
+//int SimbodyMatterSubsystemRep::projectQ
+//   (State&                  s, 
+//    Vector&                 qErrest, // q error estimate or empty 
+//    const ProjectOptions&   opts, 
+//    ProjectResults&         results) const
+//{
+//    SimTK_STAGECHECK_GE(getStage(s), Stage::Position,
+//        "SimbodyMatterSubsystemRep::projectQ()");
+//
+//    results.clear();
+//    const Real consAccuracy = opts.getRequiredAccuracy();
+//    // Normally we'll use an RMS norm for the perrs.
+//    const bool useNormInf = opts.isOptionSet(ProjectOptions::UseInfinityNorm);
+//    // Force projection even if accuracy ok on entry.
+//    const bool forceOneIter = opts.isOptionSet(ProjectOptions::ForceProjection);
+//    // Normally we'll throw an exception with a helpful message. If this is
+//    // set we'll quietly return status instead.
+//    const bool dontThrow = opts.isOptionSet(ProjectOptions::DontThrow);
+//
+//    const int mHolo  = getNumHolonomicConstraintEquationsInUse(s);
+//    const int mQuats = getNumQuaternionsInUse(s);
+//
+//    // This is a const view into the State; the contents it refers to will 
+//    // change though.
+//    const VectorView pErrs = getQErr(s)(0,mHolo); // just leave off quaternions
+//    const VectorView quatErrs = getQErr(s)(mHolo,mQuats); // quaternions
+//
+//    // We don't weight the quaternion errors.
+//    const VectorView perrWeights = getQErrWeights(s)(0,mHolo); // 1/unit error (Tp)
+//
+//    // Determine norms on entry.
+//    int worstPerr, worstQuatErr;
+//    Vector scaledPerrs = pErrs.rowScale(perrWeights);
+//    const Real perrNormOnEntry = useNormInf ? scaledPerrs.normInf(&worstPerr)
+//                                            : scaledPerrs.normRMS(&worstPerr);
+//    const Real quatNormOnEntry = useNormInf ? quatErrs.normInf(&worstQuatErr)
+//                                            : quatErrs.normRMS(&worstQuatErr);
+//    
+//    Real normOnEntry;
+//    if (perrNormOnEntry >= quatNormOnEntry) {
+//        results.setNormOnEntrance(perrNormOnEntry, worstPerr);
+//        normOnEntry = perrNormOnEntry;
+//    }
+//    else {
+//        results.setNormOnEntrance(quatNormOnEntry, mHolo + worstQuatErr);
+//        normOnEntry = quatNormOnEntry;
+//    }
+//
+//    if (normOnEntry > opts.getProjectionLimit()) {
+//        results.setProjectionLimitExceeded(true);
+//        results.setExitStatus(ProjectResults::FailedToConverge);
+//        return 1;
+//    }
+//
+//
+//    // Return quickly if (a) constraint norm is zero (probably because there
+//    // aren't any), or (b) constraints are already satisfied and we're
+//    // being forced to go ahead anyway.
+//    if (    perrNormOnEntry == 0 
+//        || (perrNormOnEntry <= consAccuracy && !forceOneIter)) {
+//        // Perrs are good enough already. Might still need to project
+//        // quaternions, but that doesn't take long. The only way this can
+//        // fail is if some of the quaternions are prescribed but prescribedQ()
+//        // wasn't called earlier as it should have been..
+//        if (quatNormOnEntry > consAccuracy || forceOneIter) {
+//            const bool anyQuatChange = normalizeQuaternions(s,qErrest);
+//            results.setAnyChangeMade(anyQuatChange);
+//            const Real quatNorm = useNormInf ? quatErrs.normInf(&worstQuatErr)
+//                                             : quatErrs.normRMS(&worstQuatErr);
+//            results.setNormOnExit(quatNorm);
+//            if (quatNorm > consAccuracy) {
+//                results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
+//                if (!dontThrow) {
+//                    SimTK_ERRCHK2_ALWAYS(quatNorm <= consAccuracy, 
+//                         "SimbodyMatterSubsystem::projectQ()",
+//                         "Failed to normalize quaternions. Norm achieved=%g"
+//                         " but required norm=%g. Did you forget to call"
+//                         " prescribeQ()?", quatNorm, consAccuracy);
+//                }
+//                return 1;
+//            }
+//        } else {    // both perrs and quatErrs were good on entry
+//            // numIterations==0.
+//            results.setAnyChangeMade(false);
+//            results.setNormOnExit(normOnEntry);
+//        }
+//        results.setExitStatus(ProjectResults::Succeeded);
+//        return 0;
+//    }
+//
+//
+//    // We're going to have to project constraints. Get the remaining options.
+//
+//
+//    // This is the factor by which we try to achieve a tighter accuracy
+//    // than requested. E.g. if overshootFactor=0.1 then we attempt 10X 
+//    // tighter accuracy if we can get it. But we won't fail as long as
+//    // we manage to reach consAccuracy.
+//    const Real overshootFactor = opts.getOvershootFactor();
+//    const Real consAccuracyToTryFor = 
+//        fmax(overshootFactor*consAccuracy, SignificantReal);
+//
+//    // Check whether we should stop if we see the solution diverging
+//    // which should not happen when we're in the neighborhood of a solution
+//    // on entry. This is always set while integrating, except during
+//    // initialization.
+//    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
+//    // We are permitted to use an out-of-date Jacobian for projection unless
+//    // this is set. TODO: always using full Newton at the moment.
+//    const bool forceFullNewton =
+//        opts.isOptionSet(ProjectOptions::ForceFullNewton);
+//
+//    // Get problem dimensions.
+//    const SBInstanceCache& ic = getInstanceCache(s);
+//    const int nq     = getNQ(s);
+//    const int nfq    = ic.getTotalNumFreeQ();
+//    const int nu     = getNU(s);
+//    const bool hasPrescribedMotion = (nfq != nq);
+//
+//    // Solve 
+//    //        (Tp Pq Wq^+) dq_WLS  = Tp perr
+//    //                         dq  = Wq^+ dq_WLS
+//    //                          q -= dq
+//    // until RMS(Tp perr) <= 0.1*accuracy.
+//    //
+//    // But Pq=P*N^+, Wq^+=N*Wu^-1*N^+ so Pq Wq^+=P*Wu^-1*N^+. Since N^+ N=I,
+//    // we can rewrite the above:
+//    //     
+//    //    (Tp P Wu^-1 N^+) dq_WLS  = Tp perr
+//    //                         dq  = N Wu^-1 N^+ dq_WLS
+//    //                          q -= dq
+//    //
+//    // We define Pqwt = ~Pqw = ~(Tp P Wu^-1 N^+) = ~N^+ Wu^-1 ~P Tp
+//    // (diagonal weights are symmetric). We only retain rows that 
+//    // correspond to free (non prescribed) q's.
+//    //
+//    // This is a nonlinear least squares problem. Below is a full Newton 
+//    // iteration since we recalculate the iteration matrix each time around the
+//    // loop. TODO: a solution could be found using the same iteration matrix, 
+//    // since we are projecting from (presumably) not too far away. Q1: will it
+//    // be the same solution? Q2: if not, does it matter?
+//
+//    // These will be updated as we go.
+//    Real perrNormAchieved = perrNormOnEntry;
+//    Real quatNormAchieved = quatNormOnEntry;
+//
+//    // We always use absolute scaling for q's, derived from the absolute
+//    // scaling of u's.
+//    const Vector& uWeights = getUWeights(s);    // 1/unit change (Wu)
+//    const Vector uAbsScale = uWeights.elementwiseInvert(); // Wu^-1
+//
+//    Real lastChangeMadeWRMS = 0; // size of last change in weighted dq
+//    int nItsUsed = 0;
+//
+//
+//    // Conditioning tolerance. This determines when we'll drop a 
+//    // constraint. 
+//    // TODO: this is sloppy; should depend on constraint tolerance
+//    // and rank should be saved and reused in velocity and acceleration
+//    // constraint methods (or should be calculated elsewhere and passed in).
+//    const Real conditioningTol = mHolo         
+//      //* SignificantReal; -- too tight
+//        * SqrtEps;
+//
+//    // Keep the starting q in case we have to restore it, which we'll do
+//    // if the attempts here make the constraint norm worse.
+//    const Vector saveQ = getQ(s);
+//
+//    Matrix Pqwrt(nfq,mHolo);
+//    Vector dfq_WLS(nfq), du(nu), dq(nq); // = Wq^+ dq_WLS
+//    Vector udfq_WLS(hasPrescribedMotion ? nq : 0); // unpacked if needed
+//    udfq_WLS.setToZero(); // must initialize unwritten elements
+//    FactorQTZ Pqwr_qtz;
+//    Real prevPerrNormAchieved = perrNormAchieved; // watch for divergence
+//    bool diverged = false;
+//    const int MaxIterations  = 20;
+//    do {
+//        calcWeightedPqrTranspose(s, perrWeights, uAbsScale, Pqwrt);//nfq X mp
+//
+//        // This factorization acts like a pseudoinverse.
+//        Pqwr_qtz.factor<Real>(~Pqwrt, conditioningTol); 
+//
+//        //printf("projectQ %d: m=%d condTol=%g rank=%d rcond=%g\n",
+//        //    nItsUsed, Pqwrt.ncol(), conditioningTol, Pqwr_qtz.getRank(),
+//        //    Pqwr_qtz.getRCondEstimate());
+//
+//        Pqwr_qtz.solve(scaledPerrs, dfq_WLS); // this is weighted dq_WLS=Wq*dq
+//        lastChangeMadeWRMS = dfq_WLS.normRMS(); // change in weighted norm
+//
+//        // switch back to unweighted dq=Wq^+*dq_WLS
+//        // = N * Wu^-1 * N^+ * dq_WLS
+//        if (hasPrescribedMotion) {
+//            unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
+//            multiplyByNInv(s,false,udfq_WLS,du);
+//        } else {
+//            multiplyByNInv(s,false,dfq_WLS,du);
+//        }
+//        // Here du = du_WLS = N^+ * dq_WLS
+//        du.rowScaleInPlace(uAbsScale); // Now du = Wu^-1 * du_WLS.
+//        multiplyByN(s,false,du,dq);     // dq = N*du
+//
+//        // This causes quaternions to become unnormalized, but it doesn't
+//        // matter because N is calculated from the unnormalized q's so
+//        // scales dq to match.
+//        updQ(s) -= dq; // this is unweighted dq
+//        results.setAnyChangeMade(true);
+//
+//        // Now recalculate the position constraint errors at the new q.
+//        realizeSubsystemPosition(s); // pErrs changes here
+//
+//        scaledPerrs = pErrs.rowScale(perrWeights); // Tp * pErrs
+//        perrNormAchieved = useNormInf ? scaledPerrs.normInf()
+//                                      : scaledPerrs.normRMS();
+//        ++nItsUsed;
+//
+//        if (localOnly && nItsUsed >= 2 
+//            && perrNormAchieved > prevPerrNormAchieved) {
+//            // perr norm got worse; restore to end of previous iteration
+//            updQ(s) += dq;
+//            realizeSubsystemPosition(s); // pErrs changes here
+//            scaledPerrs = pErrs.rowScale(perrWeights);
+//            perrNormAchieved = useNormInf ? scaledPerrs.normInf()
+//                                          : scaledPerrs.normRMS();
+//            diverged = true;
+//            break; // diverging -- quit now to prevent a bad solution
+//        }
+//
+//        prevPerrNormAchieved = perrNormAchieved;
+//
+//    } while (perrNormAchieved > consAccuracyToTryFor
+//                && nItsUsed < MaxIterations);
+//
+//    results.setNumIterations(nItsUsed);
+//
+//    //printf("        perrNormAchieved=%g in %d its\n",perrNormAchieved, nItsUsed);
+//
+//    // Make sure we achieved at least the required constraint accuracy. If not 
+//    // we'll return with an error. If we see that the norm has been made worse
+//    // than it was on entry, we'll restore the state to what it was on entry. 
+//    // Otherwise we'll return with the improved-but-not-good-enough result.
+//    if (perrNormAchieved > consAccuracy) {
+//        if (perrNormAchieved >= perrNormOnEntry) { // made it worse
+//            updQ(s) = saveQ; // revert
+//            realizeSubsystemPosition(s);
+//            perrNormAchieved = perrNormOnEntry;
+//        }
+//     
+//        results.setNormOnExit(perrNormAchieved);
+//
+//        if (diverged) {
+//            results.setExitStatus(ProjectResults::FailedToConverge);
+//            if (!dontThrow) {
+//                SimTK_ERRCHK_ALWAYS(!diverged,
+//                    "SimbodyMatterSubsystem::projectQ()",
+//                    "Attempt to project constraints locally diverged.");
+//            }
+//        } else {
+//            results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
+//            if (!dontThrow) {
+//                SimTK_ERRCHK3_ALWAYS(perrNormAchieved <= consAccuracy, 
+//                    "SimbodyMatterSubsystem::projectQ()",
+//                    "Failed to achieve required accuracy %g. Norm on entry "
+//                    " was %g; norm on exit %g. You might need a better"
+//                    " starting configuration, or if there are prescribed or "
+//                    " locked q's you might have to free some of them.", 
+//                    consAccuracy, perrNormOnEntry, perrNormAchieved);
+//            }
+//        }
+//
+//        return 1;
+//    }
+//
+//    // Position constraint errors were successfully driven to consAccuracy.
+//
+//    // Next, remove the corresponding error from the integrator's error 
+//    // estimate.
+//    //
+//    //    (Tp Pq Wq^+)_r dqr_WLS = (Tp Pq Wq^+)_r (Wq*qErrest)_r
+//    //                    dq_WLS = unpack(dqr_WLS) (with zero fill)
+//    //                       dq  = Wq^+ dq_WLS
+//    //                           = N Wu^-1 N^+ dq_WLS
+//    //                  qErrest -= dq
+//    // No iteration is required.
+//    //
+//    // We can simplify the RHS of the first equation above:
+//    //        (Tp Pq Wq^+)_r (Wq qErrest)_r = Tp Pq unpack(qErrest_r)
+//    // for which we have an O(n) operator to use for the matrix-vector 
+//    // product. (Proof: expand Pq, Wq^+, and Wq and cancel Wu^-1*Wu and
+//    // N^+*N.)
+//    if (qErrest.size()) {
+//        // Work in Wq-norm
+//        Vector Tp_Pq_qErrest, bias_p;
+//        calcBiasForMultiplyByPq(s, bias_p);
+//
+//        // Switch back to unweighted dq = Wq^+ * dq_WLS
+//        // = N * Wu^-1 * N^+ * dq_WLS
+//        if (hasPrescribedMotion) {
+//            Vector qErrest_0(qErrest);
+//            zeroKnownQ(s, qErrest_0); // zero out prescribed entries
+//            multiplyByPq(s, bias_p, qErrest_0, Tp_Pq_qErrest); // (Pq*qErrest)_r
+//            Tp_Pq_qErrest.rowScaleInPlace(perrWeights); // now Tp*(Pq*qErrest)_r
+//            Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
+//            unpackFreeQ(s, dfq_WLS, udfq_WLS); // zeroes in q_p slots
+//            multiplyByNInv(s,false,udfq_WLS,du);
+//        } else {
+//            multiplyByPq(s, bias_p, qErrest, Tp_Pq_qErrest); // Pq*qErrest
+//            Tp_Pq_qErrest.rowScaleInPlace(perrWeights); // now Tp*Pq*qErrest
+//            Pqwr_qtz.solve(Tp_Pq_qErrest, dfq_WLS); // weighted
+//            multiplyByNInv(s,false,dfq_WLS,du);
+//        }
+//        // Here du = du_WLS = N^+ * dq_WLS
+//        du.rowScaleInPlace(uAbsScale); // now du = Wu^-1 * du_WLS
+//        multiplyByN(s,false,du,dq);     // dq = N*du
+//        qErrest -= dq; // unweighted
+//    }
+//
+//    //cout << "!!!! perr TRMS achieved " << normAchievedTRMS << " in " 
+//    //     << nItsUsed << " iterations"  << endl;
+//
+//    // By design, normalization of quaternions can't have any effect on the 
+//    // constraints we just fixed (because we normalize internally for 
+//    // calculations). So now we can simply normalize the quaternions.
+//    // We can't touch any q's that are prescribed, though, so it is 
+//    // possible that we'll fail to achieve the required tolerance if some
+//    // quaterion is prescribed but not up to date.
+//    if (mQuats) {
+//        const bool anyQuatChange = normalizeQuaternions(s,qErrest);
+//        if (anyQuatChange) results.setAnyChangeMade(true);
+//        quatNormAchieved = useNormInf ? quatErrs.normInf(&worstQuatErr)
+//                                      : quatErrs.normRMS(&worstQuatErr);
+//        if (quatNormAchieved > consAccuracy) {
+//            results.setNormOnExit(quatNormAchieved);
+//            results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
+//            if (!dontThrow) {
+//                SimTK_ERRCHK2_ALWAYS(quatNormAchieved <= consAccuracy, 
+//                        "SimbodyMatterSubsystem::projectQ()",
+//                        "Failed to normalize quaternions. Norm achieved=%g"
+//                        " but required norm=%g. Did you forget to call"
+//                        " prescribeQ()?", quatNormAchieved, consAccuracy);
+//            }
+//            return 1;
+//        }
+//    }
+//    results.setNormOnExit(std::max(perrNormAchieved, quatNormAchieved));
+//    results.setExitStatus(ProjectResults::Succeeded);
+//    return 0;
+//}
 //................................. PROJECT Q ..................................
 
 // Project quaternions onto their constraint manifold by normalizing
@@ -4479,468 +4480,468 @@ bool SimbodyMatterSubsystemRep::normalizeQuaternions
 //==============================================================================
 //                         ENFORCE VELOCITY CONSTRAINTS
 //==============================================================================
-void SimbodyMatterSubsystemRep::enforceVelocityConstraints
-   (State& s, Real consAccuracy, const Vector& yWeights,
-    const Vector& ooTols, Vector& yErrest, ProjectOptions opts) const
-{
-    assert(getStage(s) >= Stage::Velocity-1);
-
-    const SBInstanceCache& ic = getInstanceCache(s);
-
-    realizeSubsystemVelocity(s);
-
-    // Here we deal with the nonholonomic (velocity) constraints and the 
-    // derivatives of the holonomic constraints.
-    const int mHolo    = getNumHolonomicConstraintEquationsInUse(s);
-    const int mNonholo = getNumNonholonomicConstraintEquationsInUse(s);
-    const int nq       = getNQ(s);
-    const int nu       = getNU(s);
-    const int nfu      = ic.getTotalNumFreeU();
-    bool hasPrescribedMotion = (nfu != nu);
-
-    const VectorView uWeights   = yWeights(nq,nu); // skip the first nq weights
-    const Vector     ooUWeights = uWeights.elementwiseInvert();
-    const VectorView ooPVTols   = ooTols(0,mHolo+mNonholo);
-    //TODO: scale holo part by time scale
-
-    VectorView uErrest = yErrest.size() ? yErrest(nq,nu) : yErrest(0,0);
-
-    // This is a const view into the State; the contents it refers to will 
-    // change though.
-    const Vector& vErrs = getUErr(s); // all velocity constraint errors (mHolo+mNonholo)
-
-    bool anyChange = false;
-
-    // Solve 
-    //   (Tpv [P;V] Wu^-1) du_WLS  = Tpv uerr
-    //                         du  = Wu^-1*du_WLS
-    //                          u -= du
-    // Note that although this is a nonlinear least squares problem since uerr 
-    // is a function of u, we do not need to refactor the matrix since it does 
-    // not depend on u.
-    // TODO: I don't think that's true -- V can depend on u (rarely). That
-    // doesn't mean we need to refactor it, but then this is a modified Newton
-    // iteration (rather than full) if we're not updating V when we could be.
-    //
-    // This is a nonlinear least squares problem, but we only need to factor 
-    // once since only the RHS is dependent on u (TODO: see above).
-    Vector scaledVerrs = vErrs.rowScale(ooPVTols);
-    Real normAchievedTRMS = scaledVerrs.normRMS();
-    
-    //cout << "!!!! initially @" << s.getTime() << ", verr TRMS=" 
-    //     << normAchievedTRMS << " consAcc=" << consAccuracy;
-    //if (uErrest.size())
-    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS();
-    //else cout << " NO U ERROR ESTIMATE";
-    //cout << endl;
-    
-
-    Real lastChangeMadeWRMS = 0;
-    int nItsUsed = 0;
-
-    // Check whether we should stop if we see the solution diverging
-    // which should not happen when we're in the neighborhood of a solution
-    // on entry.
-    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
-
-    // Set how far past the required tolerance we'll attempt to go. 
-    // We only fail if we can't achieve consAccuracy, but while we're
-    // solving we'll see if we can get consAccuracyToTryFor.
-    const Real consAccuracyToTryFor = 
-        fmax(Real(0.1)*consAccuracy, SignificantReal);
-
-    // Conditioning tolerance. This determines when we'll drop a 
-    // constraint. 
-    // TODO: this is much too tight; should depend on constraint tolerance
-    // and should be consistent with the holonomic rank.
-    const Real conditioningTol = (mHolo+mNonholo) 
-        //* SignificantReal;
-        * SqrtEps;
-
-    if (normAchievedTRMS > consAccuracyToTryFor) {
-        const Vector saveU = getU(s);
-        Matrix PVwrt(nfu, mHolo+mNonholo);
-        Vector dfu_WLS(nfu);
-        Vector du(nu); // unpacked into here if necessary
-        if (hasPrescribedMotion)
-            du.setToZero(); // must initialize unwritten elements
-
-        calcWeightedPVrTranspose(s, ooPVTols, ooUWeights, PVwrt);
-        // PVwrt is now Wu^-1 (Pt Vt) Tpv
-
-        // Calculate pseudoinverse (just once)
-        FactorQTZ PVwr_qtz;
-        PVwr_qtz.factor<Real>(~PVwrt, conditioningTol);
-
-        Real prevNormAchievedTRMS = normAchievedTRMS; // watch for divergence
-        const int MaxIterations  = 7;
-        do {
-            PVwr_qtz.solve(scaledVerrs, dfu_WLS);
-            lastChangeMadeWRMS = dfu_WLS.normRMS(); // change in weighted norm
-            if (hasPrescribedMotion) {
-                unpackFreeU(s, dfu_WLS, du);    // zeroes in u_p slots
-                du.rowScaleInPlace(ooUWeights); // du=Wu^-1*unpack(dfu_WLS)
-            } else {
-                du = dfu_WLS.rowScale(ooUWeights); // unscale: du=Wu^-1*du_WLS
-            }
-            updU(s) -= du;
-            anyChange = true;
-
-            // Recalculate the constraint errors for the new u's.
-            realizeSubsystemVelocity(s);
-            scaledVerrs = vErrs.rowScale(ooPVTols);
-            normAchievedTRMS=scaledVerrs.normRMS();
-            ++nItsUsed;
-
-            if (localOnly && nItsUsed >= 2 
-                && normAchievedTRMS > prevNormAchievedTRMS) {
-                // Velocity norm worse -- restore to end of previous iteration.
-                updU(s) += du;
-                realizeSubsystemVelocity(s);
-                scaledVerrs = vErrs.rowScale(ooPVTols);
-                normAchievedTRMS=scaledVerrs.normRMS();
-                break; // diverging -- quit now to prevent a bad solution
-            }
-
-            prevNormAchievedTRMS = normAchievedTRMS;
-
-        } while (normAchievedTRMS > consAccuracyToTryFor
-                 && nItsUsed < MaxIterations);
-
-        // Make sure we achieved at least the required constraint accuracy.
-        if (normAchievedTRMS > consAccuracy) {
-            updU(s) = saveU;
-            realizeSubsystemVelocity(s);
-            SimTK_THROW1(Exception::NewtonRaphsonFailure, 
-                         "Failed to converge in velocity projection");
-        }
-
-        // Next, if we projected out the velocity constraint errors, remove the
-        // corresponding error from the integrator's error estimate.
-        //
-        //   (Tpv [P;V] Wu^-1)_f dfu_WLS  = (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f
-        //                        du_WLS  = unpack(dfu_WLS) (with zero fill)
-        //                         du  = Wu^-1 du_WLS
-        //                    uErrest -= du
-        // No iteration is required.
-        //
-        // We can simplify the RHS of the first equation above:
-        //   (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f = Tpv [P;V] unpack(uErrest_f)
-        // for which we have an O(n) operator to compute the matrix-vector 
-        // product.
-
-        if (uErrest.size()) {
-            // Work in Wu-norm
-            Vector Tpv_PV_uErrest(mHolo+mNonholo);
-            Vector bias_pv(mHolo+mNonholo);
-            calcBiasForMultiplyByPVA(s,true,true,false,bias_pv); // just P,V
-            if (hasPrescribedMotion) {
-                Vector uErrest_0(uErrest);
-                zeroKnownU(s, uErrest_0); // zero out prescribed entries
-                multiplyByPVA(s,true,true,false,bias_pv,
-                              uErrest_0,Tpv_PV_uErrest);
-                Tpv_PV_uErrest.rowScaleInPlace(ooPVTols); // = Tpv*PV*uErrest_0
-                PVwr_qtz.solve(Tpv_PV_uErrest, dfu_WLS);
-                unpackFreeU(s, dfu_WLS, du); // still weighted
-            } else {
-                multiplyByPVA(s,true,true,false,bias_pv,uErrest,Tpv_PV_uErrest);
-                Tpv_PV_uErrest.rowScaleInPlace(ooPVTols); // = Tpv PV uErrEst
-                PVwr_qtz.solve(Tpv_PV_uErrest, du);
-            }
-            du.rowScaleInPlace(ooUWeights); // now du=Wu^-1*unpack(dfu_WLS)
-            uErrest -= du; // this is unweighted now
-        }
-    }
-   
-    //cout << "!!!! verr achieved " << normAchievedTRMS << " in " 
-    //     << nItsUsed << " iterations" << endl;
-    //if (uErrest.size())
-    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS() << endl;
-}
+//void SimbodyMatterSubsystemRep::enforceVelocityConstraints
+//   (State& s, Real consAccuracy, const Vector& yWeights,
+//    const Vector& ooTols, Vector& yErrest, ProjectOptions opts) const
+//{
+//    assert(getStage(s) >= Stage::Velocity-1);
+//
+//    const SBInstanceCache& ic = getInstanceCache(s);
+//
+//    realizeSubsystemVelocity(s);
+//
+//    // Here we deal with the nonholonomic (velocity) constraints and the 
+//    // derivatives of the holonomic constraints.
+//    const int mHolo    = getNumHolonomicConstraintEquationsInUse(s);
+//    const int mNonholo = getNumNonholonomicConstraintEquationsInUse(s);
+//    const int nq       = getNQ(s);
+//    const int nu       = getNU(s);
+//    const int nfu      = ic.getTotalNumFreeU();
+//    bool hasPrescribedMotion = (nfu != nu);
+//
+//    const VectorView uWeights   = yWeights(nq,nu); // skip the first nq weights
+//    const Vector     ooUWeights = uWeights.elementwiseInvert();
+//    const VectorView ooPVTols   = ooTols(0,mHolo+mNonholo);
+//    //TODO: scale holo part by time scale
+//
+//    VectorView uErrest = yErrest.size() ? yErrest(nq,nu) : yErrest(0,0);
+//
+//    // This is a const view into the State; the contents it refers to will 
+//    // change though.
+//    const Vector& vErrs = getUErr(s); // all velocity constraint errors (mHolo+mNonholo)
+//
+//    bool anyChange = false;
+//
+//    // Solve 
+//    //   (Tpv [P;V] Wu^-1) du_WLS  = Tpv uerr
+//    //                         du  = Wu^-1*du_WLS
+//    //                          u -= du
+//    // Note that although this is a nonlinear least squares problem since uerr 
+//    // is a function of u, we do not need to refactor the matrix since it does 
+//    // not depend on u.
+//    // TODO: I don't think that's true -- V can depend on u (rarely). That
+//    // doesn't mean we need to refactor it, but then this is a modified Newton
+//    // iteration (rather than full) if we're not updating V when we could be.
+//    //
+//    // This is a nonlinear least squares problem, but we only need to factor 
+//    // once since only the RHS is dependent on u (TODO: see above).
+//    Vector scaledVerrs = vErrs.rowScale(ooPVTols);
+//    Real normAchievedTRMS = scaledVerrs.normRMS();
+//    
+//    //cout << "!!!! initially @" << s.getTime() << ", verr TRMS=" 
+//    //     << normAchievedTRMS << " consAcc=" << consAccuracy;
+//    //if (uErrest.size())
+//    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS();
+//    //else cout << " NO U ERROR ESTIMATE";
+//    //cout << endl;
+//    
+//
+//    Real lastChangeMadeWRMS = 0;
+//    int nItsUsed = 0;
+//
+//    // Check whether we should stop if we see the solution diverging
+//    // which should not happen when we're in the neighborhood of a solution
+//    // on entry.
+//    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
+//
+//    // Set how far past the required tolerance we'll attempt to go. 
+//    // We only fail if we can't achieve consAccuracy, but while we're
+//    // solving we'll see if we can get consAccuracyToTryFor.
+//    const Real consAccuracyToTryFor = 
+//        fmax(Real(0.1)*consAccuracy, SignificantReal);
+//
+//    // Conditioning tolerance. This determines when we'll drop a 
+//    // constraint. 
+//    // TODO: this is much too tight; should depend on constraint tolerance
+//    // and should be consistent with the holonomic rank.
+//    const Real conditioningTol = (mHolo+mNonholo) 
+//        //* SignificantReal;
+//        * SqrtEps;
+//
+//    if (normAchievedTRMS > consAccuracyToTryFor) {
+//        const Vector saveU = getU(s);
+//        Matrix PVwrt(nfu, mHolo+mNonholo);
+//        Vector dfu_WLS(nfu);
+//        Vector du(nu); // unpacked into here if necessary
+//        if (hasPrescribedMotion)
+//            du.setToZero(); // must initialize unwritten elements
+//
+//        calcWeightedPVrTranspose(s, ooPVTols, ooUWeights, PVwrt);
+//        // PVwrt is now Wu^-1 (Pt Vt) Tpv
+//
+//        // Calculate pseudoinverse (just once)
+//        FactorQTZ PVwr_qtz;
+//        PVwr_qtz.factor<Real>(~PVwrt, conditioningTol);
+//
+//        Real prevNormAchievedTRMS = normAchievedTRMS; // watch for divergence
+//        const int MaxIterations  = 7;
+//        do {
+//            PVwr_qtz.solve(scaledVerrs, dfu_WLS);
+//            lastChangeMadeWRMS = dfu_WLS.normRMS(); // change in weighted norm
+//            if (hasPrescribedMotion) {
+//                unpackFreeU(s, dfu_WLS, du);    // zeroes in u_p slots
+//                du.rowScaleInPlace(ooUWeights); // du=Wu^-1*unpack(dfu_WLS)
+//            } else {
+//                du = dfu_WLS.rowScale(ooUWeights); // unscale: du=Wu^-1*du_WLS
+//            }
+//            updU(s) -= du;
+//            anyChange = true;
+//
+//            // Recalculate the constraint errors for the new u's.
+//            realizeSubsystemVelocity(s);
+//            scaledVerrs = vErrs.rowScale(ooPVTols);
+//            normAchievedTRMS=scaledVerrs.normRMS();
+//            ++nItsUsed;
+//
+//            if (localOnly && nItsUsed >= 2 
+//                && normAchievedTRMS > prevNormAchievedTRMS) {
+//                // Velocity norm worse -- restore to end of previous iteration.
+//                updU(s) += du;
+//                realizeSubsystemVelocity(s);
+//                scaledVerrs = vErrs.rowScale(ooPVTols);
+//                normAchievedTRMS=scaledVerrs.normRMS();
+//                break; // diverging -- quit now to prevent a bad solution
+//            }
+//
+//            prevNormAchievedTRMS = normAchievedTRMS;
+//
+//        } while (normAchievedTRMS > consAccuracyToTryFor
+//                 && nItsUsed < MaxIterations);
+//
+//        // Make sure we achieved at least the required constraint accuracy.
+//        if (normAchievedTRMS > consAccuracy) {
+//            updU(s) = saveU;
+//            realizeSubsystemVelocity(s);
+//            SimTK_THROW1(Exception::NewtonRaphsonFailure, 
+//                         "Failed to converge in velocity projection");
+//        }
+//
+//        // Next, if we projected out the velocity constraint errors, remove the
+//        // corresponding error from the integrator's error estimate.
+//        //
+//        //   (Tpv [P;V] Wu^-1)_f dfu_WLS  = (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f
+//        //                        du_WLS  = unpack(dfu_WLS) (with zero fill)
+//        //                         du  = Wu^-1 du_WLS
+//        //                    uErrest -= du
+//        // No iteration is required.
+//        //
+//        // We can simplify the RHS of the first equation above:
+//        //   (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f = Tpv [P;V] unpack(uErrest_f)
+//        // for which we have an O(n) operator to compute the matrix-vector 
+//        // product.
+//
+//        if (uErrest.size()) {
+//            // Work in Wu-norm
+//            Vector Tpv_PV_uErrest(mHolo+mNonholo);
+//            Vector bias_pv(mHolo+mNonholo);
+//            calcBiasForMultiplyByPVA(s,true,true,false,bias_pv); // just P,V
+//            if (hasPrescribedMotion) {
+//                Vector uErrest_0(uErrest);
+//                zeroKnownU(s, uErrest_0); // zero out prescribed entries
+//                multiplyByPVA(s,true,true,false,bias_pv,
+//                              uErrest_0,Tpv_PV_uErrest);
+//                Tpv_PV_uErrest.rowScaleInPlace(ooPVTols); // = Tpv*PV*uErrest_0
+//                PVwr_qtz.solve(Tpv_PV_uErrest, dfu_WLS);
+//                unpackFreeU(s, dfu_WLS, du); // still weighted
+//            } else {
+//                multiplyByPVA(s,true,true,false,bias_pv,uErrest,Tpv_PV_uErrest);
+//                Tpv_PV_uErrest.rowScaleInPlace(ooPVTols); // = Tpv PV uErrEst
+//                PVwr_qtz.solve(Tpv_PV_uErrest, du);
+//            }
+//            du.rowScaleInPlace(ooUWeights); // now du=Wu^-1*unpack(dfu_WLS)
+//            uErrest -= du; // this is unweighted now
+//        }
+//    }
+//   
+//    //cout << "!!!! verr achieved " << normAchievedTRMS << " in " 
+//    //     << nItsUsed << " iterations" << endl;
+//    //if (uErrest.size())
+//    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS() << endl;
+//}
 //........................ ENFORCE VELOCITY CONSTRAINTS ........................
 
 
 //==============================================================================
 //                                 PROJECT U
 //==============================================================================
-int SimbodyMatterSubsystemRep::projectU
-   (State&                  s, 
-    Vector&                 uErrest,        // u error estimate or empty 
-    const ProjectOptions&   opts, 
-    ProjectResults&         results) const
-{
-    SimTK_STAGECHECK_GE(getStage(s), Stage::Velocity,
-        "SimbodyMatterSubsystemRep::projectU()");
-
-    results.clear();
-    const Real consAccuracy = opts.getRequiredAccuracy();
-    // Normally we'll use an RMS norm for the perrs.
-    const bool useNormInf = opts.isOptionSet(ProjectOptions::UseInfinityNorm);
-    // Force projection even if accuracy ok on entry.
-    const bool forceOneIter = opts.isOptionSet(ProjectOptions::ForceProjection);
-    // Normally we'll throw an exception with a helpful message. If this is
-    // set we'll quietly return status instead.
-    const bool dontThrow = opts.isOptionSet(ProjectOptions::DontThrow);
-
-    // Here we deal with the nonholonomic (velocity) constraints and the 
-    // derivatives of the holonomic constraints.
-    const int mHolo    = getNumHolonomicConstraintEquationsInUse(s);
-    const int mNonholo = getNumNonholonomicConstraintEquationsInUse(s);
-
-    // This is a const view into the State; the contents it refers to will 
-    // change though. These are all the velocity-level constraint errors,
-    // mHolo from differentiating holonomic constraints and mNonholo directly
-    // from the nonholonomic constraints.
-    const Vector& pvErrs = getUErr(s); // mHolo+mNonholo of these
-    const Vector& pverrWeights = getUErrWeights(s); // 1/unit err (Tpv)
-
-    // Determine norm on entry.
-    int worstPVerr;
-    Vector scaledPVerrs = pvErrs.rowScale(pverrWeights);
-    const Real pverrNormOnEntry = useNormInf ? scaledPVerrs.normInf(&worstPVerr)
-                                             : scaledPVerrs.normRMS(&worstPVerr);
-    
-    results.setNormOnEntrance(pverrNormOnEntry, worstPVerr);
-
-    if (pverrNormOnEntry > opts.getProjectionLimit()) {
-        results.setProjectionLimitExceeded(true);
-        results.setExitStatus(ProjectResults::FailedToConverge);
-        return 1;
-    }
-    
-    //cout << "!!!! initially @" << s.getTime() << ", verr TRMS=" 
-    //     << normAchievedTRMS << " consAcc=" << consAccuracy;
-    //if (uErrest.size())
-    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS();
-    //else cout << " NO U ERROR ESTIMATE";
-    //cout << endl;
-    
-
-    // Return quickly if (a) constraint norm is zero (probably because there
-    // aren't any), or (b) constraints are already satisfied and we're
-    // being forced to go ahead anyway.
-    if (    pverrNormOnEntry == 0
-        || (pverrNormOnEntry <= consAccuracy && !forceOneIter)) {
-        // numIterations==0.
-        results.setAnyChangeMade(false);
-        results.setNormOnExit(pverrNormOnEntry);
-        results.setExitStatus(ProjectResults::Succeeded);
-        return 0;
-    }
-
-    // We're going to have to project constraints. Get the remaining options.
-
-    // This is the factor by which we try to achieve a tighter accuracy
-    // than requested. E.g. if overshootFactor=0.1 then we attempt 10X 
-    // tighter accuracy if we can get it. But we won't fail as long as
-    // we manage to reach consAccuracy.
-    const Real overshootFactor = opts.getOvershootFactor();
-    const Real consAccuracyToTryFor = 
-       fmax(overshootFactor*consAccuracy, SignificantReal);
-
-    // Check whether we should stop if we see the solution diverging
-    // which should not happen when we're in the neighborhood of a solution
-    // on entry. This is always set while integrating, except during
-    // initialization.
-    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
-    // We are permitted to use an out-of-date Jacobian for projection unless
-    // this is set. TODO: always using modified Newton at the moment.
-    const bool forceFullNewton =
-        opts.isOptionSet(ProjectOptions::ForceFullNewton);
-
-    // Get problem dimensions.
-    const SBInstanceCache& ic = getInstanceCache(s);
-    const int nq       = getNQ(s);
-    const int nu       = getNU(s);
-    const int nfu      = ic.getTotalNumFreeU();
-    bool hasPrescribedMotion = (nfu != nu);
-
-    // Solve 
-    //   (Tpv [P;V] Wu^-1) du_WLS  = Tpv uerr
-    //                         du  = Wu^-1*du_WLS
-    //                          u -= du
-    // Note that although this is a nonlinear least squares problem since uerr 
-    // is a function of u, we do not need to refactor the matrix since it does 
-    // not depend on u.
-    // TODO: I don't think that's true -- V can depend on u (rarely). That
-    // doesn't mean we need to refactor it, but then this is a modified Newton
-    // iteration (rather than full) if we're not updating V when we could be.
-    //
-    // This is a nonlinear least squares problem, but we only need to factor 
-    // once since only the RHS is dependent on u (TODO: see above).
-
-    // This will be updated as we go.
-    Real pverrNormAchieved = pverrNormOnEntry;
-
-
-    // Calculate relative scaling for changes to u.
-    const Vector& u = getU(s);
-    const Vector& uWeights = getUWeights(s); // 1/unit change (Wu)
-    Vector uRelScale(nu);
-    for (int i=0; i<nu; ++i) {
-        const Real ui = fabs(u[i]);
-        const Real wi = uWeights[i];
-        uRelScale[i] = ui*wi > 1 ? ui : 1/wi; // max(unit error, u) (1/Eu)
-    }
-
-    Real lastChangeMadeWRMS = 0;
-    int nItsUsed = 0;
-
-    // Conditioning tolerance. This determines when we'll drop a 
-    // constraint. 
-    // TODO: this is much too tight; should depend on constraint tolerance
-    // and should be consistent with the holonomic rank.
-    const Real conditioningTol = (mHolo+mNonholo) 
-        //* SignificantReal;
-        * SqrtEps;
-
-    // Keep the starting u in case we have to restore it, which we'll do
-    // if the attempts here make the constraint norm worse.
-    const Vector saveU = getU(s);
-
-    Matrix PVwrt(nfu, mHolo+mNonholo);
-    Vector dfu_WLS(nfu);
-    Vector du(nu); // unpacked into here if necessary
-    if (hasPrescribedMotion)
-        du.setToZero(); // must initialize unwritten elements
-
-    calcWeightedPVrTranspose(s, pverrWeights, uRelScale, PVwrt);
-    // PVwrt is now Eu^-1 (Pt Vt) Tpv
-
-    // Calculate pseudoinverse (just once)
-    FactorQTZ PVwr_qtz;
-    PVwr_qtz.factor<Real>(~PVwrt, conditioningTol);
-
-    //printf("projectU m=%d condTol=%g rank=%d rcond=%g\n",
-    //    PVwrt.ncol(), conditioningTol, PVwr_qtz.getRank(),
-    //    PVwr_qtz.getRCondEstimate());
-
-    Real prevPVerrNormAchieved = pverrNormAchieved; // watch for divergence
-    bool diverged = false;
-    const int MaxIterations  = 7;
-    do {
-        PVwr_qtz.solve(scaledPVerrs, dfu_WLS);
-        lastChangeMadeWRMS = dfu_WLS.normRMS(); // change in weighted norm
-
-        // switch back to unweighted du=Eu^-1*du_WLS
-        if (hasPrescribedMotion) {
-            unpackFreeU(s, dfu_WLS, du);    // zeroes in u_p slots
-            du.rowScaleInPlace(uRelScale); // du=Eu^-1*unpack(dfu_WLS)
-        } else {
-            du = dfu_WLS.rowScale(uRelScale); // unscale: du=Eu^-1*du_WLS
-        }
-        updU(s) -= du;
-        results.setAnyChangeMade(true);
-
-        // Recalculate the constraint errors for the new u's.
-        realizeSubsystemVelocity(s);
-        scaledPVerrs = pvErrs.rowScale(pverrWeights); // Tpv * pvErrs
-        pverrNormAchieved = useNormInf ? scaledPVerrs.normInf()
-                                       : scaledPVerrs.normRMS();
-        ++nItsUsed;
-
-        if (localOnly && nItsUsed >= 2 
-            && pverrNormAchieved > prevPVerrNormAchieved) {
-            // Velocity norm worse -- restore to end of previous iteration.
-            updU(s) += du;
-            realizeSubsystemVelocity(s); // pvErrs changes here
-            scaledPVerrs = pvErrs.rowScale(pverrWeights);
-            pverrNormAchieved = useNormInf ? scaledPVerrs.normInf()
-                                           : scaledPVerrs.normRMS();
-            diverged = true;
-            break; // diverging -- quit now to prevent a bad solution
-        }
-
-        prevPVerrNormAchieved = pverrNormAchieved;
-
-    } while (pverrNormAchieved > consAccuracyToTryFor
-                && nItsUsed < MaxIterations);
-
-    results.setNumIterations(nItsUsed);
-
-    // Make sure we achieved at least the required constraint accuracy. If not 
-    // we'll return with an error. If we see that the norm has been made worse
-    // than it was on entry, we'll restore the state to what it was on entry. 
-    // Otherwise we'll return with the improved-but-not-good-enough result.
-    if (pverrNormAchieved > consAccuracy) {
-        if (pverrNormAchieved >= pverrNormOnEntry) { // made it worse
-            updU(s) = saveU; // revert
-            realizeSubsystemVelocity(s);
-            pverrNormAchieved = pverrNormOnEntry;
-        }
-     
-        results.setNormOnExit(pverrNormAchieved);
-
-        if (diverged) {
-            results.setExitStatus(ProjectResults::FailedToConverge);
-            if (!dontThrow) {
-                SimTK_ERRCHK_ALWAYS(!diverged,
-                    "SimbodyMatterSubsystem::projectU()",
-                    "Attempt to project constraints locally diverged.");
-            }
-        } else {
-            results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
-            if (!dontThrow) {
-                SimTK_ERRCHK3_ALWAYS(pverrNormAchieved <= consAccuracy, 
-                    "SimbodyMatterSubsystem::projectU()",
-                    "Failed to achieve required accuracy %g. Norm on entry "
-                    " was %g; norm on exit %g. You might need a better"
-                    " starting configuration, or if there are prescribed or "
-                    " locked u's you might have to free some of them.", 
-                    consAccuracy, pverrNormOnEntry, pverrNormAchieved);
-            }
-        }
-
-        return 1;
-    }
-
-    // Velocity constraint errors were successfully driven to consAccuracy.
-
-    // Next, if we projected out the velocity constraint errors, remove the
-    // corresponding error from the integrator's error estimate.
-    //
-    //   (Tpv [P;V] Wu^-1)_f dfu_WLS  = (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f
-    //                        du_WLS  = unpack(dfu_WLS) (with zero fill)
-    //                         du  = Wu^-1 du_WLS
-    //                    uErrest -= du
-    // No iteration is required.
-    //
-    // We can simplify the RHS of the first equation above:
-    //   (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f = Tpv [P;V] unpack(uErrest_f)
-    // for which we have an O(n) operator to compute the matrix-vector 
-    // product.
-
-    if (uErrest.size()) {
-        // Work in Wu-norm
-        Vector Tpv_PV_uErrest(mHolo+mNonholo);
-        Vector bias_pv(mHolo+mNonholo);
-        calcBiasForMultiplyByPVA(s,true,true,false,bias_pv); // just P,V
-        if (hasPrescribedMotion) {
-            Vector uErrest_0(uErrest);
-            zeroKnownU(s, uErrest_0); // zero out prescribed entries
-            multiplyByPVA(s,true,true,false,bias_pv,
-                            uErrest_0,Tpv_PV_uErrest);
-            Tpv_PV_uErrest.rowScaleInPlace(pverrWeights); // = Tpv*PV*uErrest_0
-            PVwr_qtz.solve(Tpv_PV_uErrest, dfu_WLS);
-            unpackFreeU(s, dfu_WLS, du); // still weighted
-        } else {
-            multiplyByPVA(s,true,true,false,bias_pv,uErrest,Tpv_PV_uErrest);
-            Tpv_PV_uErrest.rowScaleInPlace(pverrWeights); // = Tpv PV uErrEst
-            PVwr_qtz.solve(Tpv_PV_uErrest, du);
-        }
-        du.rowScaleInPlace(uRelScale); // now du=Eu^-1*unpack(dfu_WLS)
-        uErrest -= du; // this is unweighted now
-    }
-   
-    //cout << "!!!! verr achieved " << pverrNormAchieved << " in " 
-    //     << nItsUsed << " iterations" << endl;
-    //if (uErrest.size())
-    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS() << endl;
-
-    results.setNormOnExit(pverrNormAchieved);
-    results.setExitStatus(ProjectResults::Succeeded);
-    return 0;
-}
+//int SimbodyMatterSubsystemRep::projectU
+//   (State&                  s, 
+//    Vector&                 uErrest,        // u error estimate or empty 
+//    const ProjectOptions&   opts, 
+//    ProjectResults&         results) const
+//{
+//    SimTK_STAGECHECK_GE(getStage(s), Stage::Velocity,
+//        "SimbodyMatterSubsystemRep::projectU()");
+//
+//    results.clear();
+//    const Real consAccuracy = opts.getRequiredAccuracy();
+//    // Normally we'll use an RMS norm for the perrs.
+//    const bool useNormInf = opts.isOptionSet(ProjectOptions::UseInfinityNorm);
+//    // Force projection even if accuracy ok on entry.
+//    const bool forceOneIter = opts.isOptionSet(ProjectOptions::ForceProjection);
+//    // Normally we'll throw an exception with a helpful message. If this is
+//    // set we'll quietly return status instead.
+//    const bool dontThrow = opts.isOptionSet(ProjectOptions::DontThrow);
+//
+//    // Here we deal with the nonholonomic (velocity) constraints and the 
+//    // derivatives of the holonomic constraints.
+//    const int mHolo    = getNumHolonomicConstraintEquationsInUse(s);
+//    const int mNonholo = getNumNonholonomicConstraintEquationsInUse(s);
+//
+//    // This is a const view into the State; the contents it refers to will 
+//    // change though. These are all the velocity-level constraint errors,
+//    // mHolo from differentiating holonomic constraints and mNonholo directly
+//    // from the nonholonomic constraints.
+//    const Vector& pvErrs = getUErr(s); // mHolo+mNonholo of these
+//    const Vector& pverrWeights = getUErrWeights(s); // 1/unit err (Tpv)
+//
+//    // Determine norm on entry.
+//    int worstPVerr;
+//    Vector scaledPVerrs = pvErrs.rowScale(pverrWeights);
+//    const Real pverrNormOnEntry = useNormInf ? scaledPVerrs.normInf(&worstPVerr)
+//                                             : scaledPVerrs.normRMS(&worstPVerr);
+//    
+//    results.setNormOnEntrance(pverrNormOnEntry, worstPVerr);
+//
+//    if (pverrNormOnEntry > opts.getProjectionLimit()) {
+//        results.setProjectionLimitExceeded(true);
+//        results.setExitStatus(ProjectResults::FailedToConverge);
+//        return 1;
+//    }
+//    
+//    //cout << "!!!! initially @" << s.getTime() << ", verr TRMS=" 
+//    //     << normAchievedTRMS << " consAcc=" << consAccuracy;
+//    //if (uErrest.size())
+//    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS();
+//    //else cout << " NO U ERROR ESTIMATE";
+//    //cout << endl;
+//    
+//
+//    // Return quickly if (a) constraint norm is zero (probably because there
+//    // aren't any), or (b) constraints are already satisfied and we're
+//    // being forced to go ahead anyway.
+//    if (    pverrNormOnEntry == 0
+//        || (pverrNormOnEntry <= consAccuracy && !forceOneIter)) {
+//        // numIterations==0.
+//        results.setAnyChangeMade(false);
+//        results.setNormOnExit(pverrNormOnEntry);
+//        results.setExitStatus(ProjectResults::Succeeded);
+//        return 0;
+//    }
+//
+//    // We're going to have to project constraints. Get the remaining options.
+//
+//    // This is the factor by which we try to achieve a tighter accuracy
+//    // than requested. E.g. if overshootFactor=0.1 then we attempt 10X 
+//    // tighter accuracy if we can get it. But we won't fail as long as
+//    // we manage to reach consAccuracy.
+//    const Real overshootFactor = opts.getOvershootFactor();
+//    const Real consAccuracyToTryFor = 
+//       fmax(overshootFactor*consAccuracy, SignificantReal);
+//
+//    // Check whether we should stop if we see the solution diverging
+//    // which should not happen when we're in the neighborhood of a solution
+//    // on entry. This is always set while integrating, except during
+//    // initialization.
+//    const bool localOnly = opts.isOptionSet(ProjectOptions::LocalOnly);
+//    // We are permitted to use an out-of-date Jacobian for projection unless
+//    // this is set. TODO: always using modified Newton at the moment.
+//    const bool forceFullNewton =
+//        opts.isOptionSet(ProjectOptions::ForceFullNewton);
+//
+//    // Get problem dimensions.
+//    const SBInstanceCache& ic = getInstanceCache(s);
+//    const int nq       = getNQ(s);
+//    const int nu       = getNU(s);
+//    const int nfu      = ic.getTotalNumFreeU();
+//    bool hasPrescribedMotion = (nfu != nu);
+//
+//    // Solve 
+//    //   (Tpv [P;V] Wu^-1) du_WLS  = Tpv uerr
+//    //                         du  = Wu^-1*du_WLS
+//    //                          u -= du
+//    // Note that although this is a nonlinear least squares problem since uerr 
+//    // is a function of u, we do not need to refactor the matrix since it does 
+//    // not depend on u.
+//    // TODO: I don't think that's true -- V can depend on u (rarely). That
+//    // doesn't mean we need to refactor it, but then this is a modified Newton
+//    // iteration (rather than full) if we're not updating V when we could be.
+//    //
+//    // This is a nonlinear least squares problem, but we only need to factor 
+//    // once since only the RHS is dependent on u (TODO: see above).
+//
+//    // This will be updated as we go.
+//    Real pverrNormAchieved = pverrNormOnEntry;
+//
+//
+//    // Calculate relative scaling for changes to u.
+//    const Vector& u = getU(s);
+//    const Vector& uWeights = getUWeights(s); // 1/unit change (Wu)
+//    Vector uRelScale(nu);
+//    for (int i=0; i<nu; ++i) {
+//        const Real ui = fabs(u[i]);
+//        const Real wi = uWeights[i];
+//        uRelScale[i] = ui*wi > 1 ? ui : 1/wi; // max(unit error, u) (1/Eu)
+//    }
+//
+//    Real lastChangeMadeWRMS = 0;
+//    int nItsUsed = 0;
+//
+//    // Conditioning tolerance. This determines when we'll drop a 
+//    // constraint. 
+//    // TODO: this is much too tight; should depend on constraint tolerance
+//    // and should be consistent with the holonomic rank.
+//    const Real conditioningTol = (mHolo+mNonholo) 
+//        //* SignificantReal;
+//        * SqrtEps;
+//
+//    // Keep the starting u in case we have to restore it, which we'll do
+//    // if the attempts here make the constraint norm worse.
+//    const Vector saveU = getU(s);
+//
+//    Matrix PVwrt(nfu, mHolo+mNonholo);
+//    Vector dfu_WLS(nfu);
+//    Vector du(nu); // unpacked into here if necessary
+//    if (hasPrescribedMotion)
+//        du.setToZero(); // must initialize unwritten elements
+//
+//    calcWeightedPVrTranspose(s, pverrWeights, uRelScale, PVwrt);
+//    // PVwrt is now Eu^-1 (Pt Vt) Tpv
+//
+//    // Calculate pseudoinverse (just once)
+//    FactorQTZ PVwr_qtz;
+//    PVwr_qtz.factor<Real>(~PVwrt, conditioningTol);
+//
+//    //printf("projectU m=%d condTol=%g rank=%d rcond=%g\n",
+//    //    PVwrt.ncol(), conditioningTol, PVwr_qtz.getRank(),
+//    //    PVwr_qtz.getRCondEstimate());
+//
+//    Real prevPVerrNormAchieved = pverrNormAchieved; // watch for divergence
+//    bool diverged = false;
+//    const int MaxIterations  = 7;
+//    do {
+//        PVwr_qtz.solve(scaledPVerrs, dfu_WLS);
+//        lastChangeMadeWRMS = dfu_WLS.normRMS(); // change in weighted norm
+//
+//        // switch back to unweighted du=Eu^-1*du_WLS
+//        if (hasPrescribedMotion) {
+//            unpackFreeU(s, dfu_WLS, du);    // zeroes in u_p slots
+//            du.rowScaleInPlace(uRelScale); // du=Eu^-1*unpack(dfu_WLS)
+//        } else {
+//            du = dfu_WLS.rowScale(uRelScale); // unscale: du=Eu^-1*du_WLS
+//        }
+//        updU(s) -= du;
+//        results.setAnyChangeMade(true);
+//
+//        // Recalculate the constraint errors for the new u's.
+//        realizeSubsystemVelocity(s);
+//        scaledPVerrs = pvErrs.rowScale(pverrWeights); // Tpv * pvErrs
+//        pverrNormAchieved = useNormInf ? scaledPVerrs.normInf()
+//                                       : scaledPVerrs.normRMS();
+//        ++nItsUsed;
+//
+//        if (localOnly && nItsUsed >= 2 
+//            && pverrNormAchieved > prevPVerrNormAchieved) {
+//            // Velocity norm worse -- restore to end of previous iteration.
+//            updU(s) += du;
+//            realizeSubsystemVelocity(s); // pvErrs changes here
+//            scaledPVerrs = pvErrs.rowScale(pverrWeights);
+//            pverrNormAchieved = useNormInf ? scaledPVerrs.normInf()
+//                                           : scaledPVerrs.normRMS();
+//            diverged = true;
+//            break; // diverging -- quit now to prevent a bad solution
+//        }
+//
+//        prevPVerrNormAchieved = pverrNormAchieved;
+//
+//    } while (pverrNormAchieved > consAccuracyToTryFor
+//                && nItsUsed < MaxIterations);
+//
+//    results.setNumIterations(nItsUsed);
+//
+//    // Make sure we achieved at least the required constraint accuracy. If not 
+//    // we'll return with an error. If we see that the norm has been made worse
+//    // than it was on entry, we'll restore the state to what it was on entry. 
+//    // Otherwise we'll return with the improved-but-not-good-enough result.
+//    if (pverrNormAchieved > consAccuracy) {
+//        if (pverrNormAchieved >= pverrNormOnEntry) { // made it worse
+//            updU(s) = saveU; // revert
+//            realizeSubsystemVelocity(s);
+//            pverrNormAchieved = pverrNormOnEntry;
+//        }
+//     
+//        results.setNormOnExit(pverrNormAchieved);
+//
+//        if (diverged) {
+//            results.setExitStatus(ProjectResults::FailedToConverge);
+//            if (!dontThrow) {
+//                SimTK_ERRCHK_ALWAYS(!diverged,
+//                    "SimbodyMatterSubsystem::projectU()",
+//                    "Attempt to project constraints locally diverged.");
+//            }
+//        } else {
+//            results.setExitStatus(ProjectResults::FailedToAchieveAccuracy);
+//            if (!dontThrow) {
+//                SimTK_ERRCHK3_ALWAYS(pverrNormAchieved <= consAccuracy, 
+//                    "SimbodyMatterSubsystem::projectU()",
+//                    "Failed to achieve required accuracy %g. Norm on entry "
+//                    " was %g; norm on exit %g. You might need a better"
+//                    " starting configuration, or if there are prescribed or "
+//                    " locked u's you might have to free some of them.", 
+//                    consAccuracy, pverrNormOnEntry, pverrNormAchieved);
+//            }
+//        }
+//
+//        return 1;
+//    }
+//
+//    // Velocity constraint errors were successfully driven to consAccuracy.
+//
+//    // Next, if we projected out the velocity constraint errors, remove the
+//    // corresponding error from the integrator's error estimate.
+//    //
+//    //   (Tpv [P;V] Wu^-1)_f dfu_WLS  = (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f
+//    //                        du_WLS  = unpack(dfu_WLS) (with zero fill)
+//    //                         du  = Wu^-1 du_WLS
+//    //                    uErrest -= du
+//    // No iteration is required.
+//    //
+//    // We can simplify the RHS of the first equation above:
+//    //   (Tpv [P;V] Wu^-1)_f (Wu uErrest)_f = Tpv [P;V] unpack(uErrest_f)
+//    // for which we have an O(n) operator to compute the matrix-vector 
+//    // product.
+//
+//    if (uErrest.size()) {
+//        // Work in Wu-norm
+//        Vector Tpv_PV_uErrest(mHolo+mNonholo);
+//        Vector bias_pv(mHolo+mNonholo);
+//        calcBiasForMultiplyByPVA(s,true,true,false,bias_pv); // just P,V
+//        if (hasPrescribedMotion) {
+//            Vector uErrest_0(uErrest);
+//            zeroKnownU(s, uErrest_0); // zero out prescribed entries
+//            multiplyByPVA(s,true,true,false,bias_pv,
+//                            uErrest_0,Tpv_PV_uErrest);
+//            Tpv_PV_uErrest.rowScaleInPlace(pverrWeights); // = Tpv*PV*uErrest_0
+//            PVwr_qtz.solve(Tpv_PV_uErrest, dfu_WLS);
+//            unpackFreeU(s, dfu_WLS, du); // still weighted
+//        } else {
+//            multiplyByPVA(s,true,true,false,bias_pv,uErrest,Tpv_PV_uErrest);
+//            Tpv_PV_uErrest.rowScaleInPlace(pverrWeights); // = Tpv PV uErrEst
+//            PVwr_qtz.solve(Tpv_PV_uErrest, du);
+//        }
+//        du.rowScaleInPlace(uRelScale); // now du=Eu^-1*unpack(dfu_WLS)
+//        uErrest -= du; // this is unweighted now
+//    }
+//   
+//    //cout << "!!!! verr achieved " << pverrNormAchieved << " in " 
+//    //     << nItsUsed << " iterations" << endl;
+//    //if (uErrest.size())
+//    //    cout << " uErrest WRMS=" << uErrest.rowScale(uWeights).normRMS() << endl;
+//
+//    results.setNormOnExit(pverrNormAchieved);
+//    results.setExitStatus(ProjectResults::Succeeded);
+//    return 0;
+//}
 //................................ PROJECT U ...................................
 
 
@@ -5073,83 +5074,83 @@ void SimbodyMatterSubsystemRep::realizeTreeForwardDynamics(
 // operator. In typical usage, the output arguments actually will be part of 
 // the state cache to effect a response, but this method can also be used to 
 // effect an operator.
-void SimbodyMatterSubsystemRep::calcLoopForwardDynamicsOperator
-   (const State& s, 
-    const Vector&                   mobilityForces,
-    const Vector_<Vec3>&            particleForces,
-    const Vector_<SpatialVec>&      bodyForces,
-    SBTreeAccelerationCache&        tac,
-    SBConstrainedAccelerationCache& cac,
-    Vector&                         udot,
-    Vector&                         qdotdot,
-    Vector&                         multipliers,
-    Vector&                         udotErr) const
-{
-    assert(getStage(s) >= Stage::Acceleration-1);
-
-    // Calculate acceleration results ignoring Constraints, except to have
-    // them calculate the resulting constraint errors.
-    calcTreeForwardDynamicsOperator
-       (s, mobilityForces, particleForces, bodyForces,
-        0, 0, tac, udot, qdotdot, udotErr);
-
-    // Next, determine how many acceleration-level constraint equations 
-    // need to be obeyed.
-
-    const int mHolo    = getNumHolonomicConstraintEquationsInUse(s);
-    const int mNonholo = getNumNonholonomicConstraintEquationsInUse(s);
-    const int mAccOnly = getNumAccelerationOnlyConstraintEquationsInUse(s);
-    const int m        = mHolo+mNonholo+mAccOnly;
-    const int nq       = getNQ(s);
-    const int nu       = getNU(s);
-
-    multipliers.resize(m);
-    if (m==0) return;
-    if (nu==0) {multipliers.setToZero(); return;}
-
-    // Conditioning tolerance. This determines when we'll drop a 
-    // constraint. 
-    // TODO: this is probably too tight; should depend on constraint tolerance
-    // and should be consistent with position and velocity projection ranks.
-    // Tricky here because conditioning depends on mass matrix as well as
-    // constraints.
-    const Real conditioningTol = m 
-        //* SignificantReal;
-        * SqrtEps*sqrt(SqrtEps); // Eps^(3/4)
-
-    // Calculate multipliers lambda as
-    //     (G M^-1 ~G) lambda = aerr
-    // The method here calculates the mXm matrix G*M^-1*G^T as fast as 
-    // I know how to do, O(m*n) with O(n) temporary memory, using a series
-    // of O(n) operators. Then we'll factor it here in O(m^3) time. 
-    Matrix GMInvGt(m,m);
-    calcGMInvGt(s, GMInvGt);
-    
-    // specify 1/cond at which we declare rank deficiency
-    FactorQTZ qtz(GMInvGt, conditioningTol); 
-
-    //printf("fwdDynamics: m=%d condTol=%g rank=%d rcond=%g\n",
-    //    GMInvGt.nrow(), conditioningTol, qtz.getRank(),
-    //    qtz.getRCondEstimate());
-
-    qtz.solve(udotErr, multipliers);
-
-    // We have the multipliers, now turn them into forces.
-
-    Vector_<SpatialVec> bodyForcesInG;
-    Vector              mobilityF;
-    calcConstraintForcesFromMultipliers(s,multipliers,bodyForcesInG,mobilityF,
-        cac.constrainedBodyForcesInG, cac.constraintMobilityForces);
-    // Note that constraint forces have the opposite sign from applied forces
-    // so must be subtracted to calculate the total forces.
-
-    // Recalculate the accelerations applying the constraint forces in addition
-    // to the applied forces that were passed in. The constraint errors 
-    // calculated now should be within numerical noise of zero.
-    calcTreeForwardDynamicsOperator
-       (s, mobilityForces, particleForces, bodyForces,
-        &mobilityF, &bodyForcesInG, tac, udot, qdotdot, udotErr);
-}
+//void SimbodyMatterSubsystemRep::calcLoopForwardDynamicsOperator
+//   (const State& s, 
+//    const Vector&                   mobilityForces,
+//    const Vector_<Vec3>&            particleForces,
+//    const Vector_<SpatialVec>&      bodyForces,
+//    SBTreeAccelerationCache&        tac,
+//    SBConstrainedAccelerationCache& cac,
+//    Vector&                         udot,
+//    Vector&                         qdotdot,
+//    Vector&                         multipliers,
+//    Vector&                         udotErr) const
+//{
+//    assert(getStage(s) >= Stage::Acceleration-1);
+//
+//    // Calculate acceleration results ignoring Constraints, except to have
+//    // them calculate the resulting constraint errors.
+//    calcTreeForwardDynamicsOperator
+//       (s, mobilityForces, particleForces, bodyForces,
+//        0, 0, tac, udot, qdotdot, udotErr);
+//
+//    // Next, determine how many acceleration-level constraint equations 
+//    // need to be obeyed.
+//
+//    const int mHolo    = getNumHolonomicConstraintEquationsInUse(s);
+//    const int mNonholo = getNumNonholonomicConstraintEquationsInUse(s);
+//    const int mAccOnly = getNumAccelerationOnlyConstraintEquationsInUse(s);
+//    const int m        = mHolo+mNonholo+mAccOnly;
+//    const int nq       = getNQ(s);
+//    const int nu       = getNU(s);
+//
+//    multipliers.resize(m);
+//    if (m==0) return;
+//    if (nu==0) {multipliers.setToZero(); return;}
+//
+//    // Conditioning tolerance. This determines when we'll drop a 
+//    // constraint. 
+//    // TODO: this is probably too tight; should depend on constraint tolerance
+//    // and should be consistent with position and velocity projection ranks.
+//    // Tricky here because conditioning depends on mass matrix as well as
+//    // constraints.
+//    const Real conditioningTol = m 
+//        //* SignificantReal;
+//        * SqrtEps*sqrt(SqrtEps); // Eps^(3/4)
+//
+//    // Calculate multipliers lambda as
+//    //     (G M^-1 ~G) lambda = aerr
+//    // The method here calculates the mXm matrix G*M^-1*G^T as fast as 
+//    // I know how to do, O(m*n) with O(n) temporary memory, using a series
+//    // of O(n) operators. Then we'll factor it here in O(m^3) time. 
+//    Matrix GMInvGt(m,m);
+//    calcGMInvGt(s, GMInvGt);
+//    
+//    // specify 1/cond at which we declare rank deficiency
+//    FactorQTZ qtz(GMInvGt, conditioningTol); 
+//
+//    //printf("fwdDynamics: m=%d condTol=%g rank=%d rcond=%g\n",
+//    //    GMInvGt.nrow(), conditioningTol, qtz.getRank(),
+//    //    qtz.getRCondEstimate());
+//
+//    qtz.solve(udotErr, multipliers);
+//
+//    // We have the multipliers, now turn them into forces.
+//
+//    Vector_<SpatialVec> bodyForcesInG;
+//    Vector              mobilityF;
+//    calcConstraintForcesFromMultipliers(s,multipliers,bodyForcesInG,mobilityF,
+//        cac.constrainedBodyForcesInG, cac.constraintMobilityForces);
+//    // Note that constraint forces have the opposite sign from applied forces
+//    // so must be subtracted to calculate the total forces.
+//
+//    // Recalculate the accelerations applying the constraint forces in addition
+//    // to the applied forces that were passed in. The constraint errors 
+//    // calculated now should be within numerical noise of zero.
+//    calcTreeForwardDynamicsOperator
+//       (s, mobilityForces, particleForces, bodyForces,
+//        &mobilityF, &bodyForcesInG, tac, udot, qdotdot, udotErr);
+//}
 //................... CALC LOOP FORWARD DYNAMICS OPERATOR ......................
 
 

@@ -95,9 +95,11 @@ int MultibodySystem::addForceSubsystem(ForceSubsystem& f) {
 int MultibodySystem::setDecorationSubsystem(DecorationSubsystem& m) {
     return updRep().setDecorationSubsystem(m);
 }
-int MultibodySystem::setContactSubsystem(GeneralContactSubsystem& m) {
-    return updRep().setContactSubsystem(m);
-}
+
+//#testcomment
+//int MultibodySystem::setContactSubsystem(GeneralContactSubsystem& m) {
+//    return updRep().setContactSubsystem(m);
+//}
 
 const SimbodyMatterSubsystem&       
 MultibodySystem::getMatterSubsystem() const {
@@ -123,14 +125,15 @@ bool MultibodySystem::hasDecorationSubsystem() const {
     return getRep().hasDecorationSubsystem();
 }
 
-const GeneralContactSubsystem&       
-MultibodySystem::getContactSubsystem() const {
-    return getRep().getContactSubsystem();
-}
-GeneralContactSubsystem&       
-MultibodySystem::updContactSubsystem() {
-    return updRep().updContactSubsystem();
-}
+//#testcomment
+//const GeneralContactSubsystem&       
+//MultibodySystem::getContactSubsystem() const {
+//    return getRep().getContactSubsystem();
+//}
+//GeneralContactSubsystem&       
+//MultibodySystem::updContactSubsystem() {
+//    return updRep().updContactSubsystem();
+//}
 bool MultibodySystem::hasContactSubsystem() const {
     return getRep().hasContactSubsystem();
 }
@@ -253,8 +256,10 @@ int MultibodySystemRep::realizeVelocityImpl(const State& s) const {
 }
 int MultibodySystemRep::realizeDynamicsImpl(const State& s) const {
     getGlobalSubsystem().getRep().realizeSubsystemDynamics(s);
+
+	/*#testcomment
     if (hasContactSubsystem())
-        getContactSubsystem().getSubsystemGuts().realizeSubsystemDynamics(s);
+        getContactSubsystem().getSubsystemGuts().realizeSubsystemDynamics(s);*/
 
     // This realizes the matter subsystem's dynamic operators; not yet accelerations.
     getMatterSubsystem().getRep().realizeSubsystemDynamics(s);
