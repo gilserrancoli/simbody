@@ -1,12 +1,12 @@
 #include "Simbody.h"
 #include "SimTKcommon.h"
-#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
-#include <C:\ADOL-C-sparse\include\adolc\adolc_sparse.h>
+#include <adolc.h>
+#include <adolc_sparse.h>
 #include "SimTKmath.h"
 
 
 using namespace SimTK;
-void main() {
+int main() {
 	// Define the system.
 	MultibodySystem system;
 	std::cout << "a" << std::endl;
@@ -44,7 +44,7 @@ void main() {
 	std::cout << "g" << std::endl;
 
 	// Our implementation
-
+    system.realize(state, SimTK::Stage::Dynamics);
 
 
 	int nb = matter.getNumBodies();

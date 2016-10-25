@@ -33,7 +33,7 @@ include_directories(${PLATFORM_INCLUDE_DIRECTORIES}
 # The BUILD_VISUALIZER variable determines whether we actually build the
 # simbody-visualizer, but we still have to build the library-side support for
 # the Visualizer so that Simbody tests won't fail to build.
-set(SIMBODY_SOURCE_SUBDIRS . Visualizer)
+set(SIMBODY_SOURCE_SUBDIRS .) # TODOautodiff Visualizer)
 
 add_definitions(-DSimTK_SIMBODY_LIBRARY_NAME=${SimTKSIMBODY_LIBRARY_NAME}
                 -DSimTK_SIMBODY_MAJOR_VERSION=${SIMBODY_MAJOR_VERSION}
@@ -102,7 +102,39 @@ set(SOURCE_FILES) # empty
 set(SOURCE_INCLUDE_FILES)
 
 foreach(subdir ${SIMBODY_SOURCE_SUBDIRS})
-    file(GLOB src_files  ${subdir}/src/*.cpp ${subdir}/src/*/*.cpp)
+    # TODO autodiff file(GLOB src_files  ${subdir}/src/*.cpp ${subdir}/src/*/*.cpp)
+    file(GLOB src_files ${subdir}/src/About.cpp
+                        ${subdir}/src/Body.cpp
+                        ${subdir}/src/Constraint.cpp
+                        ${subdir}/src/Constraint_Rod.cpp
+                        ${subdir}/src/Constraint_SphereOnPlaneContact.cpp
+                        ${subdir}/src/Constraint_SphereOnSphereContact.cpp
+                        ${subdir}/src/DecorationSubsystem.cpp
+                        ${subdir}/src/Force.cpp
+                        ${subdir}/src/Force_Gravity.cpp
+                        ${subdir}/src/Force_Instantiations.cpp
+                        ${subdir}/src/Force_LinearBushing.cpp
+                        ${subdir}/src/Force_Thermostat.cpp
+                        ${subdir}/src/ForceSubsystem.cpp
+                        ${subdir}/src/GeneralForceSubsystem.cpp
+                        ${subdir}/src/ImpulseSolver.cpp
+                        ${subdir}/src/Matter_Instantiations.cpp
+                        ${subdir}/src/MobilizedBody.cpp
+                        ${subdir}/src/Motion.cpp
+                        ${subdir}/src/MultibodySystem.cpp
+                        ${subdir}/src/OBSOLETE_LengthConstraints.cpp
+                        # ${subdir}/src/PGSImpulseSolver.cpp
+                        ${subdir}/src/RigidBodyNode.cpp
+                        ${subdir}/src/RigidBodyNode_LoneParticle.cpp
+                        ${subdir}/src/RigidBodyNode_Weld.cpp
+                        ${subdir}/src/RigidBodyNodeSpec.cpp
+                        ${subdir}/src/RigidBodyNodeSpec_Derived.cpp
+                        ${subdir}/src/SimbodyMatterSubsystem.cpp
+                        ${subdir}/src/SimbodyMatterSubsystemRep.cpp
+                        ${subdir}/src/SimbodyMatterSubtree.cpp
+                        ${subdir}/src/TextDataEventReporter.cpp
+                        )
+
     file(GLOB incl_files ${subdir}/src/*.h)
     set(SOURCE_FILES         ${SOURCE_FILES}         ${src_files})   #append
     set(SOURCE_INCLUDE_FILES ${SOURCE_INCLUDE_FILES} ${incl_files})
