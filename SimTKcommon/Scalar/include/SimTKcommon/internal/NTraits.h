@@ -1359,9 +1359,9 @@ public:
     static const T& getMostNegative() {static const T c=-std::numeric_limits<T>::max();      return c;} 
     static const T& getSqrtEps()      {static const T c=sqrt(getEps());                 return c;} 
 		static const T& getTiny()         {static const T c=pow(getEps(), (T)1.25L);        return c;} 
-    static bool isFinite(const T& t) {return isFinite(t);}   
-    static bool isNaN   (const T& t) {return isNaN(t);}      
-    static bool isInf   (const T& t) {return isInf(t);}      
+    static bool NTraits<adouble>::isFinite(const T& t) {return SimTK::isFinite(t);}   
+    static bool NTraits<adouble>::isNaN (const T& t) {return SimTK::isNaN(t);}
+    static bool NTraits<adouble>::isInf   (const T& t) {return SimTK::isInf(t);}      
     /* Methods to use for approximate comparisons. Perform comparison in the wider of the two */                
     /* precisions, using the default tolerance from the narrower of the two precisions.       */                
     static double getDefaultTolerance() {return RTraits<T>::getDefaultTolerance();}                             

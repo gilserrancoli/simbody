@@ -786,10 +786,8 @@ const RigidBodyNode& MobilizedBodyImpl::realizeTopology
 {
     delete myRBnode;
     myRBnode = createRigidBodyNode(nxtU,nxtUSq,nxtQ);
-
     assert(myMobilizedBodyIndex.isValid());
     assert(myParentIndex.isValid() || myMobilizedBodyIndex == GroundIndex);
-
     if (myParentIndex.isValid()) {
         // not ground
         const MobilizedBodyImpl& parent = 
@@ -798,17 +796,15 @@ const RigidBodyNode& MobilizedBodyImpl::realizeTopology
         parent.myRBnode->addChild(myRBnode);
         myRBnode->setParent(parent.myRBnode);
     }
-
     myRBnode->setLevel(myLevel);
     myRBnode->setNodeNum(myMobilizedBodyIndex);
-
     // Realize Motion topology.
     if (hasMotion())
         getMotion().getImpl().realizeTopology(s);
-
     // Realize MobilizedBody-specific topology.
     realizeTopologyVirtual(s);
     return *myRBnode;
+
 }
 
 //------------------------------------------------------------------------------

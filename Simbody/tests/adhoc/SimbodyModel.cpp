@@ -9,29 +9,19 @@ using namespace SimTK;
 void main() {
 	// Define the system.
 	MultibodySystem system;
-	std::cout << "a" << std::endl;
-
 	SimbodyMatterSubsystem matter(system);
-	std::cout << "b" << std::endl;
-
 	GeneralForceSubsystem forces(system);
-	std::cout << "c" << std::endl;
-
-	/*Force::Gravity gravity(forces, matter, -YAxis, 9.8);
-	std::cout << "d" << std::endl;*/
-
-
+	Force::UniformGravity gravity(forces, matter, Vec3(10, Real(-9.8), 3));
+	
 	// Describe mass and visualization properties for a generic body.
 	Body::Rigid bodyInfo(MassProperties(1.0, Vec3(0), UnitInertia(1)));
 	//bodyInfo.addDecoration(Transform(), DecorativeSphere(0.1));
-	std::cout << "d" << std::endl;
 
 	// Create the moving (mobilized) bodies of the pendulum.
 	MobilizedBody::Pin pendulum1(matter.Ground(), Transform(Vec3(0)),
 		bodyInfo, Transform(Vec3(0, 1, 0)));
 	MobilizedBody::Pin pendulum2(pendulum1, Transform(Vec3(0)),
 		bodyInfo, Transform(Vec3(0, 1, 0)));
-	std::cout << "e" << std::endl;
 
 	// Set up visualization.
 	/*Visualizer viz(system);
@@ -39,15 +29,14 @@ void main() {
 
 	// Initialize the system and state.
 	State state = system.realizeTopology();
-	std::cout << "f" << std::endl;
 	pendulum2.setRate(state, 5.0);
-	std::cout << "g" << std::endl;
 
 	// Our implementation
 
 
 
 	int nb = matter.getNumBodies();
+	system.realize(state, Stage::Velocity);
 
 	MobilizedBodyIndex indxpd1 = pendulum1.getMobilizedBodyIndex();
 	MobilizedBodyIndex indxpd2 = pendulum2.getMobilizedBodyIndex();
@@ -70,14 +59,42 @@ void main() {
 	Vector a = state.getQ();
 	adouble aa = a.get(0);
 
-	std::cout << "c" << std::endl;
-	
-	std::cout << "Duration: " << a.toString() << " milliseconds" << std::endl;
+	printf("Number of Qs %d", state.getNQ());
+	printf("Number of Us %d", state.getNU());
 
-	//// Simulate for 20 seconds.
-	//RungeKuttaMersonIntegrator integ(system);
-	//TimeStepper ts(system, integ);
-	//ts.initialize(state);
-	//ts.stepTo(20.0);
-	//return ;0
+	//
+
+	///// This differentiates a function R^n -> R^m at px using ADOL-C.
+	//void auto_jacobian(int n, int m, const double* px, double** J) {
+
+	//	short int tag = 0;
+
+	//	// Start recording information for computing derivatives.
+	//	trace_on(tag);
+
+	//	SimTK::vector<adouble> x(n);
+	//	SimTK::vector<adouble> y(m);
+	//	SimTK::vector<double> py(m); // p for "passive variable;" ADOL-C terminology.
+
+	//	// Indicate independent variables.
+	//	for (int i = 0; i < n; ++i) x[i] <<= px[i];
+
+	//	// Evaluate function.
+	//	constraint_function_dense(n, m, x.data(), y.data());
+
+
+
+	//	// Indicate dependent variables.
+	//	for (int j = 0; j < m; ++j) y[j] >>= py[j];
+
+	//	// Stop recording.
+	//	trace_off();
+
+	//	// Use the recorded tape to compute the jacobian.
+	//	int success = jacobian(tag, m, n, px, J);
+	//	assert(success == 3);
+	//}
+
+
+
 }

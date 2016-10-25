@@ -77,6 +77,7 @@ RigidBodyNode* MobilizedBody::PinImpl::createRigidBodyNode(
     USquaredIndex& nextUSqSlot,
     QIndex&        nextQSlot) const
 {
+
     INSTANTIATE(RBNodeTorsion,
         getDefaultRigidBodyMassProperties(),
         getDefaultInboardFrame(),getDefaultOutboardFrame(),
@@ -274,6 +275,7 @@ RigidBodyNode* MobilizedBody::CustomImpl::createRigidBodyNode(
     USquaredIndex& nextUSqSlot,
     QIndex&        nextQSlot) const
 {
+
     bool noX_MB = (getDefaultOutboardFrame().p() == 0 && getDefaultOutboardFrame().R() == Mat33(1));
     bool noR_PF = (getDefaultInboardFrame().R() == Mat33(1));
     switch (getImplementation().getImpl().getNU()) {

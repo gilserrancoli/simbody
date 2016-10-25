@@ -146,6 +146,7 @@ public:
 
     const char* type() const override { return "ground"; }
 
+
     // TODO: should ground set the various cache entries here?
     void realizeModel   (SBStateDigest&) const override {}
     void realizeInstance(const SBStateDigest& sbs) const override {
@@ -697,7 +698,9 @@ public:
 // The Ground node is special because it doesn't need a mobilizer.
 /*static*/ RigidBodyNode*
 RigidBodyNode::createGroundNode() {
+
     return new RBGroundBody();
+
 }
 
 RigidBodyNode* MobilizedBody::WeldImpl::createRigidBodyNode(
@@ -705,6 +708,7 @@ RigidBodyNode* MobilizedBody::WeldImpl::createRigidBodyNode(
     USquaredIndex& nextUSqSlot,
     QIndex&        nextQSlot) const
 {
+
     return new RBNodeWeld(
         getDefaultRigidBodyMassProperties(),
         getDefaultInboardFrame(),getDefaultOutboardFrame(),
@@ -716,6 +720,7 @@ RigidBodyNode* MobilizedBody::GroundImpl::createRigidBodyNode(
     USquaredIndex& nextUSqSlot,
     QIndex&        nextQSlot) const
 {
+
     return RigidBodyNode::createGroundNode();
 }
 

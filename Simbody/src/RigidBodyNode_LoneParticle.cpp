@@ -453,6 +453,9 @@ RigidBodyNode* MobilizedBody::TranslationImpl::createRigidBodyNode(
         UIndex&        nextUSlot,
         USquaredIndex& nextUSqSlot,
         QIndex&        nextQSlot) const {
+
+	
+
     if (!hasChildren && getMyParentMobilizedBodyIndex() == 0 && !isReversed() &&
             getDefaultInboardFrame().p() == 0 && getDefaultInboardFrame().R() == Mat33(1) &&
             getDefaultOutboardFrame().p() == 0 && getDefaultOutboardFrame().R() == Mat33(1)) {
