@@ -50,6 +50,7 @@ typedef Rotation_<Real>             Rotation;
 typedef Rotation_<float>           fRotation;
 typedef Rotation_<double>          dRotation;
 
+
 typedef InverseRotation_<Real>      InverseRotation;
 typedef InverseRotation_<float>    fInverseRotation;
 typedef InverseRotation_<double>   dInverseRotation;

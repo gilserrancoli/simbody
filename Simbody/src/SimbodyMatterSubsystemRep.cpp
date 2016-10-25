@@ -257,6 +257,8 @@ getArticulatedBodyCentrifugalForces(const State& s, MobodIndex body) const {
 void SimbodyMatterSubsystemRep::endConstruction(State& s) {
     if (subsystemTopologyHasBeenRealized()) 
         return; // already done
+	std::cout << "testx1 " << std::endl;
+
 
     // This creates a RigidBodyNode owned by the the Topology cache of each 
     // MobilizedBody. Each RigidBodyNode lists as its parent the RigidBodyNode
@@ -271,27 +273,41 @@ void SimbodyMatterSubsystemRep::endConstruction(State& s) {
     nextUSlot   = UIndex(0);
     nextUSqSlot = USquaredIndex(0);
     nextQSlot   = QIndex(0);
+	std::cout << "testx2 " << std::endl;
 
     //Must do these in order from lowest number (ground) to highest. 
     for (MobilizedBodyIndex mbx(0); mbx<getNumMobilizedBodies(); ++mbx) {
         // Create the RigidBodyNode properly linked to its parent.
+		std::cout << "testxx1 " << std::endl;
+
         const MobilizedBodyImpl& mbr = getMobilizedBody(mbx).getImpl();
+		std::cout << "testxx2 " << std::endl;
+
         const RigidBodyNode& n = mbr.realizeTopology(s,nextUSlot,nextUSqSlot,nextQSlot);
+		std::cout << "testxx3 " << std::endl;
+
 
         // Create the computational multibody tree data structures, organized 
         // by level.
         const int level = n.getLevel();
         if ((int)rbNodeLevels.size() <= level)
             rbNodeLevels.resize(level+1); // make room for the new level
+		std::cout << "testxx4 " << std::endl;
+
         const int nodeIndexWithinLevel = rbNodeLevels[level].size();
         rbNodeLevels[level].push_back(&n);
         nodeNum2NodeMap.push_back(RigidBodyNodeIndex(level, nodeIndexWithinLevel));
+		std::cout << "testxx5 " << std::endl;
+
 
         // Count up multibody tree totals.
         const int ndof = n.getDOF();
         DOFTotal += ndof; SqDOFTotal += ndof*ndof;
         maxNQTotal += n.getMaxNQ();
+		std::cout << "testxx6 " << std::endl;
+
     }
+	std::cout << "testx3 " << std::endl;
     
     // Order doesn't matter for constraints as long as the bodies are already 
     // there. Quaternion normalization constraints exist only at the 
@@ -304,6 +320,7 @@ void SimbodyMatterSubsystemRep::endConstruction(State& s) {
 //        branches.resize(rbNodeLevels[1].size()); // each level 1 body is a branch
 
     nextAncestorConstrainedBodyPoolSlot = AncestorConstrainedBodyPoolIndex(0);
+	std::cout << "testx4 " << std::endl;
 
     for (ConstraintIndex cx(0); cx<getNumConstraints(); ++cx) {
         // Note: currently there is no such thing as a disabled constraint at
@@ -328,26 +345,33 @@ void SimbodyMatterSubsystemRep::endConstruction(State& s) {
         }
         */
     }
+	std::cout << "testx4 " << std::endl;
 }
 
 int SimbodyMatterSubsystemRep::realizeSubsystemTopologyImpl(State& s) const {
     SimTK_STAGECHECK_EQ_ALWAYS(getStage(s), Stage::Empty, 
         "SimbodyMatterSubsystem::realizeTopology()");
+	std::cout << "test1 " << std::endl;
 
     // Some of our 'const' values must be treated as mutable *just for this 
     // call*. Afterwards they are truly const so we don't declare them mutable,
     // but cheat here instead.
     SimbodyMatterSubsystemRep* mThis = 
         const_cast<SimbodyMatterSubsystemRep*>(this);
+	std::cout << "test2 " << std::endl;
 
     if (!subsystemTopologyHasBeenRealized()) 
+		std::cout << "test3a " << std::endl;
+
         mThis->endConstruction(s); // no more bodies after this!
+	std::cout << "test3b " << std::endl;
 
     // Fill in the local copy of the topologyCache from the information
     // calculated in endConstruction(). Also ask the State for some room to
     // put Modeling variables & cache and remember the indices in our 
     // construction cache.
     SBTopologyCache& tc = mThis->topologyCache;
+	std::cout << "test4 " << std::endl;
 
     tc.nBodies      = nodeNum2NodeMap.size();
     tc.nConstraints = constraints.size();
@@ -357,15 +381,19 @@ int SimbodyMatterSubsystemRep::realizeSubsystemTopologyImpl(State& s) const {
     tc.nDOFs        = DOFTotal;
     tc.maxNQs       = maxNQTotal;
     tc.sumSqDOFs    = SqDOFTotal;
+	std::cout << "test5 " << std::endl;
 
     SBModelVars mvars;
     mvars.allocate(topologyCache);
     setDefaultModelValues(topologyCache, mvars);
     tc.modelingVarsIndex  = 
         allocateDiscreteVariable(s,Stage::Model, new Value<SBModelVars>(mvars));
+	std::cout << "test6 " << std::endl;
+
 
     tc.modelingCacheIndex = 
         allocateCacheEntry(s,Stage::Model, new Value<SBModelCache>());
+	std::cout << "test7 " << std::endl;
 
     SBInstanceVars iv;
     iv.allocate(topologyCache);

@@ -206,11 +206,14 @@ Subsystem::Guts* Subsystem::Guts::clone() const {
 void Subsystem::Guts::realizeSubsystemTopology(State& s) const {
     SimTK_STAGECHECK_EQ_ALWAYS(getStage(s), Stage::Empty, 
         "Subsystem::Guts::realizeSubsystemTopology()");
+	std::cout << "testaaa " << std::endl;
     realizeSubsystemTopologyImpl(s);
+	std::cout << "testbbb " << std::endl;
 
     // Realize this Subsystem's Measures.
     for (MeasureIndex mx(0); mx < m_measures.size(); ++mx)
         m_measures[mx]->realizeTopology(s);
+	std::cout << "testccc " << std::endl;
 
     m_subsystemTopologyRealized = true; // mark subsys itself (mutable)
     advanceToStage(s, Stage::Topology);  // mark the State as well
