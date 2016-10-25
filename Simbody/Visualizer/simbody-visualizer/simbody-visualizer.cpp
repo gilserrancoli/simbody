@@ -468,8 +468,8 @@ static double fpsBaseTime = 0;
 static vector<string> overlayMessageLines;
 static bool displayOverlayMessage = false;
 static const double OverlayDisplayTimeInSec = 5; // Leave up for 5 s.
-static double overlayStartTime = NaN; // set when overlay is requested
-static double overlayEndTime   = NaN; // set when overlay is requested
+static double overlayStartTime = NaN.getValue(); // set when overlay is requested
+static double overlayEndTime   = NaN.getValue(); // set when overlay is requested
 
 static void setClearColorToBackgroundColor() {
     glClearColor(backgroundColor[0],backgroundColor[1],backgroundColor[2],1);
@@ -1868,7 +1868,7 @@ static void disableOverlayTimer(int value) {
         return;
     }
     displayOverlayMessage = false;
-    overlayStartTime = overlayEndTime = NaN;
+    overlayStartTime = overlayEndTime = NaN.getValue();
     requestPassiveRedisplay();                   //------ PASSIVE REDISPLAY ---
 }
 
@@ -2516,7 +2516,7 @@ void viewMenuSelected(int option) {
 
     // Flip the camera 180 degress around one of the other axes if in a negative direction.
     if (groundNormal.getDirection() == -1)
-        groundRotation = fRotation((float)Pi, groundNormal.getAxis().getNextAxis()) * groundRotation;
+        groundRotation = fRotation((float)Pi.getValue(), groundNormal.getAxis().getNextAxis()) * groundRotation;
 
     switch (option) {
     case MENU_VIEW_FRONT:

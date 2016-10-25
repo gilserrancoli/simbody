@@ -60,7 +60,7 @@
 #include <complex>
 #include <iostream>
 #include <limits>
-#include <adolc.h>
+#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
 
 using std::complex;
 

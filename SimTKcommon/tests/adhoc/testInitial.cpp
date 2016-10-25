@@ -23,8 +23,8 @@
 
 #include <simbody.h>
 #include <SimTKcommon.h>
-#include <adolc.h>
-#include <adolc_sparse.h>
+#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
+#include <C:\ADOL-C-sparse\include\adolc\adolc_sparse.h>
 //
 #include <cstdlib> // for rand()
 #include <ctime>
@@ -67,7 +67,7 @@ void constraint_function_dense(int n, int m, SimTK::Vector_<adouble> x, SimTK::V
 	}
 }
 
-int main2() {
+int main() {
 	int n = 10; int m = 10000; 
 	double** J=myalloc(m,n);
 	std::vector<double> px(n,1);

@@ -26,7 +26,7 @@
  * Implementation of SimbodyMatterSubsystem, a concrete Subsystem.
  */
 
-#include <adolc.h>
+#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
 
 #include "SimTKcommon.h"
 #include "simbody/internal/MobilizedBody.h"

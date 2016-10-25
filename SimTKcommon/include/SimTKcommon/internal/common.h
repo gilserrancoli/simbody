@@ -1,4 +1,4 @@
-#include <adolc.h>
+#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
 
 #ifndef SimTK_SimTKCOMMON_COMMON_H_
 #define SimTK_SimTKCOMMON_COMMON_H_
