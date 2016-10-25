@@ -245,14 +245,16 @@ public:
 
 
     // Invalidate Stage::Position.
-    void setQToFitTransform(State& s, const Transform& X_FM) const;
-    void setQToFitRotation(State& s, const Rotation& R_FM) const;
-    void setQToFitTranslation(State& s, const Vec3& p_FM) const;
+	// #test
+    //void setQToFitTransform(State& s, const Transform& X_FM) const;
+    /*void setQToFitRotation(State& s, const Rotation& R_FM) const;
+    void setQToFitTranslation(State& s, const Vec3& p_FM) const;*/
 
     // Invalidate Stage::Velocity.
-    void setUToFitVelocity(State& s, const SpatialVec& V_FM) const;
-    void setUToFitAngularVelocity(State& s, const Vec3& w_FM) const;
-    void setUToFitLinearVelocity(State& s, const Vec3& v_FM)  const;
+	// #test
+    /*void setUToFitVelocity(State& s, const SpatialVec& V_FM) const;*/
+    /*void setUToFitAngularVelocity(State& s, const Vec3& w_FM) const;
+    void setUToFitLinearVelocity(State& s, const Vec3& v_FM)  const;*/
 
     const MassProperties& getBodyMassProperties(const State& s) const {
         // TODO: these should come from the state if the body has variable mass props

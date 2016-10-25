@@ -92,62 +92,62 @@ RBNodeFreeLine(const MassProperties& mProps_B,
 // This has a default implementation but it rotates first then translates,
 // which works fine for the normal FreeLine joint but produces wrong behavior
 // when the mobilizer is reversed.
-void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
-                            Vector& q) const override 
-{
-    setQToFitTranslationImpl(sbs, X_FM.p(), q); // see below
-    setQToFitRotationImpl(sbs, X_FM.R(), q);
-}
+//void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
+//                            Vector& q) const override 
+//{
+//    setQToFitTranslationImpl(sbs, X_FM.p(), q); // see below
+//    setQToFitRotationImpl(sbs, X_FM.R(), q);
+//}
 
-void setQToFitRotationImpl(const SBStateDigest& sbs, const Rotation& R_FM,
-                          Vector& q) const override
-{
-    if (this->getUseEulerAngles(sbs.getModelVars()))
-        this->toQVec3(q,0) = R_FM.convertRotationToBodyFixedXYZ();
-    else
-        this->toQuat(q) = R_FM.convertRotationToQuaternion().asVec4();
-}
+//void setQToFitRotationImpl(const SBStateDigest& sbs, const Rotation& R_FM,
+//                          Vector& q) const override
+//{
+//    if (this->getUseEulerAngles(sbs.getModelVars()))
+//        this->toQVec3(q,0) = R_FM.convertRotationToBodyFixedXYZ();
+//    else
+//        this->toQuat(q) = R_FM.convertRotationToQuaternion().asVec4();
+//}
 
 // The user gives us the translation vector from OF to OM as a vector expressed 
 // in F. With a free joint we never have to *change* orientation coordinates in 
 // order to achieve a translation.
-void setQToFitTranslationImpl(const SBStateDigest& sbs,
-                              const Vec3& p_FM, Vector& q) const override {
-    if (this->getUseEulerAngles(sbs.getModelVars()))
-        this->toQVec3(q,3) = p_FM; // skip the 3 Euler angles
-    else
-        this->toQVec3(q,4) = p_FM; // skip the 4 quaternions
-}
+//void setQToFitTranslationImpl(const SBStateDigest& sbs,
+//                              const Vec3& p_FM, Vector& q) const override {
+//    if (this->getUseEulerAngles(sbs.getModelVars()))
+//        this->toQVec3(q,3) = p_FM; // skip the 3 Euler angles
+//    else
+//        this->toQVec3(q,4) = p_FM; // skip the 4 quaternions
+//}
 
 // Our 2 rotational generalized speeds are just the (x,y) components of the
 // angular velocity vector of M in F, expressed in *M*.
 // Note: a quaternion from a state is not necessarily normalized so can't be 
 // used directly as though it were a set of Euler parameters; it must be 
 // normalized first.
-void setUToFitAngularVelocityImpl(const SBStateDigest& sbs, 
-                                  const Vector& q, const Vec3& w_FM,
-                                  Vector& u) const override
-{
-    Rotation R_FM;
-    if (this->getUseEulerAngles(sbs.getModelVars()))
-        R_FM.setRotationToBodyFixedXYZ( this->fromQVec3(q,0) );
-    else {
-        // can't use qnorm pool here since state hasn't been 
-        // realized to position stage yet; q's can be anything
-        R_FM.setRotationFromQuaternion( Quaternion(this->fromQuat(q)) ); // normalize
-    }
-    const Vec3 w_FM_M = ~R_FM*w_FM;
-    // (x,y) of relative angular velocity always used as generalized speeds
-    Vec2::updAs(&this->toU(u)[0]) = Vec2(w_FM_M[0], w_FM_M[1]); 
-}
+//void setUToFitAngularVelocityImpl(const SBStateDigest& sbs, 
+//                                  const Vector& q, const Vec3& w_FM,
+//                                  Vector& u) const override
+//{
+//    Rotation R_FM;
+//    if (this->getUseEulerAngles(sbs.getModelVars()))
+//        R_FM.setRotationToBodyFixedXYZ( this->fromQVec3(q,0) );
+//    else {
+//        // can't use qnorm pool here since state hasn't been 
+//        // realized to position stage yet; q's can be anything
+//        R_FM.setRotationFromQuaternion( Quaternion(this->fromQuat(q)) ); // normalize
+//    }
+//    const Vec3 w_FM_M = ~R_FM*w_FM;
+//    // (x,y) of relative angular velocity always used as generalized speeds
+//    Vec2::updAs(&this->toU(u)[0]) = Vec2(w_FM_M[0], w_FM_M[1]); 
+//}
 
 // Our 3 translational generalized speeds are the linear velocity of M's origin
 // in F, expressed in F. The user gives us that same vector.
-void setUToFitLinearVelocityImpl(const SBStateDigest& sbs,
-                                 const Vector& q, const Vec3& v_FM, Vector& u) const override
-{
-    this->toUVec3(u,2) = v_FM;
-}
+//void setUToFitLinearVelocityImpl(const SBStateDigest& sbs,
+//                                 const Vector& q, const Vec3& v_FM, Vector& u) const override
+//{
+//    this->toUVec3(u,2) = v_FM;
+//}
 
 // When we're using Euler angles, we're going to want to cache cos and sin for
 // each angle, and also 1/cos of the middle angle will be handy to have around.

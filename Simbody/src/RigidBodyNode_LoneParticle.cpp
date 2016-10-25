@@ -423,29 +423,29 @@ const SpatialVec& getH_FMCol(const SBTreePositionCache& pc,
     return col;
 }
 
-void setQToFitTransformImpl(const SBStateDigest&, const Transform& X_F0M0, 
-                            Vector& q) const override {
-    Vec3::updAs(&q[qIndex]) = X_F0M0.p();
-}
-void setQToFitRotationImpl(const SBStateDigest&, const Rotation& R_F0M0, 
-                           Vector& q) const override {
-}
-void setQToFitTranslationImpl(const SBStateDigest&, const Vec3& p_F0M0, 
-                              Vector& q) const override {
-    Vec3::updAs(&q[qIndex]) = p_F0M0;
-}
+//void setQToFitTransformImpl(const SBStateDigest&, const Transform& X_F0M0, 
+//                            Vector& q) const override {
+//    Vec3::updAs(&q[qIndex]) = X_F0M0.p();
+//}
+//void setQToFitRotationImpl(const SBStateDigest&, const Rotation& R_F0M0, 
+//                           Vector& q) const override {
+//}
+//void setQToFitTranslationImpl(const SBStateDigest&, const Vec3& p_F0M0, 
+//                              Vector& q) const override {
+//    Vec3::updAs(&q[qIndex]) = p_F0M0;
+//}
 
-void setUToFitVelocityImpl(const SBStateDigest&, const Vector& q, 
-                           const SpatialVec& V_F0M0, Vector& u) const override {
-    Vec3::updAs(&u[uIndex]) = V_F0M0[1];
-}
-void setUToFitAngularVelocityImpl(const SBStateDigest&, const Vector& q, 
-                                  const Vec3& w_F0M0, Vector& u) const override {    
-}
-void setUToFitLinearVelocityImpl(const SBStateDigest&, const Vector& q, 
-                                 const Vec3& v_F0M0, Vector& u) const override {
-    Vec3::updAs(&u[uIndex]) = v_F0M0;
-}
+//void setUToFitVelocityImpl(const SBStateDigest&, const Vector& q, 
+//                           const SpatialVec& V_F0M0, Vector& u) const override {
+//    Vec3::updAs(&u[uIndex]) = V_F0M0[1];
+//}
+//void setUToFitAngularVelocityImpl(const SBStateDigest&, const Vector& q, 
+//                                  const Vec3& w_F0M0, Vector& u) const override {    
+//}
+//void setUToFitLinearVelocityImpl(const SBStateDigest&, const Vector& q, 
+//                                 const Vec3& v_F0M0, Vector& u) const override {
+//    Vec3::updAs(&u[uIndex]) = v_F0M0;
+//}
 
 };
 

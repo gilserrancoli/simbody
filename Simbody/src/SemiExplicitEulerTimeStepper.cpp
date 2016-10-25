@@ -23,7 +23,7 @@
 
 #include "simbody/internal/common.h"
 #include "simbody/internal/SemiExplicitEulerTimeStepper.h"
-#include "simbody/internal/ConditionalConstraint.h"
+//#include "simbody/internal/ConditionalConstraint.h"
 #include "simbody/internal/SimbodyMatterSubsystem.h"
 
 #include "SimbodyMatterSubsystemRep.h"

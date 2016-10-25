@@ -608,7 +608,7 @@ make specific promises about what they will do; consult the documentation. These
 routines do not throw exceptions even for absurd requests like specifying a
 rotation for a sliding mobilizer. Nothing happens if there are no mobilities 
 here, i.e. Ground or a Weld mobilizer. **/
-void setQToFitTransform(State& state, const Transform& X_FM) const;
+//void setQToFitTransform(State& state, const Transform& X_FM) const;
 
 /** Adjust this mobilizer's q's to best approximate the supplied Rotation matrix
 which requests a particular relative orientation between the "fixed" frame F and
@@ -629,7 +629,7 @@ velocity between the "fixed" and "moving" frames connected by this mobilizer.
 Routines which affect generalized speeds u depend on the generalized coordinates
 q already having been set; they never change these coordinates.
 @see setQToFitTransform() **/
-void setUToFitVelocity(State& state, const SpatialVec& V_FM) const;
+//void setUToFitVelocity(State& state, const SpatialVec& V_FM) const;
 
 /** Adjust this mobilizer's u's (generalized speeds) to best approximate the 
 supplied angular velocity \p w_FM which requests a particular relative angular

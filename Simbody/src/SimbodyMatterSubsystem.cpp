@@ -26,7 +26,7 @@
  * Implementation of SimbodyMatterSubsystem, a concrete Subsystem.
  */
 
-#include <adolc.h>
+#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
 
 #include "SimTKcommon.h"
 #include "simbody/internal/MobilizedBody.h"
@@ -119,32 +119,32 @@ updConstraint(ConstraintIndex id) {return updRep().updConstraint(id);}
 
 
 
-UnilateralContactIndex SimbodyMatterSubsystem::
-adoptUnilateralContact(UnilateralContact* child)
-{   return updRep().adoptUnilateralContact(child); }
-int SimbodyMatterSubsystem::
-getNumUnilateralContacts() const 
-{   return getRep().getNumUnilateralContacts(); }
-const UnilateralContact& SimbodyMatterSubsystem::
-getUnilateralContact(UnilateralContactIndex ix) const
-{   return getRep().getUnilateralContact(ix); }
-UnilateralContact& SimbodyMatterSubsystem::
-updUnilateralContact(UnilateralContactIndex ix)
-{   return updRep().updUnilateralContact(ix); }
+//UnilateralContactIndex SimbodyMatterSubsystem::
+//adoptUnilateralContact(UnilateralContact* child)
+//{   return updRep().adoptUnilateralContact(child); }
+//int SimbodyMatterSubsystem::
+//getNumUnilateralContacts() const 
+//{   return getRep().getNumUnilateralContacts(); }
+//const UnilateralContact& SimbodyMatterSubsystem::
+//getUnilateralContact(UnilateralContactIndex ix) const
+//{   return getRep().getUnilateralContact(ix); }
+//UnilateralContact& SimbodyMatterSubsystem::
+//updUnilateralContact(UnilateralContactIndex ix)
+//{   return updRep().updUnilateralContact(ix); }
 
 
-StateLimitedFrictionIndex SimbodyMatterSubsystem::
-adoptStateLimitedFriction(StateLimitedFriction* child)
-{   return updRep().adoptStateLimitedFriction(child); }
-int SimbodyMatterSubsystem::
-getNumStateLimitedFrictions() const
-{   return getRep().getNumStateLimitedFrictions(); }
-const StateLimitedFriction& SimbodyMatterSubsystem::
-getStateLimitedFriction(StateLimitedFrictionIndex ix) const
-{   return getRep().getStateLimitedFriction(ix); }
-StateLimitedFriction& SimbodyMatterSubsystem::
-updStateLimitedFriction(StateLimitedFrictionIndex ix)
-{   return updRep().updStateLimitedFriction(ix); }
+//StateLimitedFrictionIndex SimbodyMatterSubsystem::
+//adoptStateLimitedFriction(StateLimitedFriction* child)
+//{   return updRep().adoptStateLimitedFriction(child); }
+//int SimbodyMatterSubsystem::
+//getNumStateLimitedFrictions() const
+//{   return getRep().getNumStateLimitedFrictions(); }
+//const StateLimitedFriction& SimbodyMatterSubsystem::
+//getStateLimitedFriction(StateLimitedFrictionIndex ix) const
+//{   return getRep().getStateLimitedFriction(ix); }
+//StateLimitedFriction& SimbodyMatterSubsystem::
+//updStateLimitedFriction(StateLimitedFrictionIndex ix)
+//{   return updRep().updStateLimitedFriction(ix); }
 
 
 //==============================================================================
@@ -183,9 +183,9 @@ void SimbodyMatterSubsystem::calcAcceleration
     Vector multipliers(getNMultipliers(state)); // unwanted return value
     Vector udotErr(getNUDotErr(state)); // unwanted return value
 
-    getRep().calcLoopForwardDynamicsOperator(state, 
-        appliedMobilityForces, appliedParticleForces, appliedBodyForces,
-        tac, cac, udot, qdotdot, multipliers, udotErr);
+    //getRep().calcLoopForwardDynamicsOperator(state, 
+    //    appliedMobilityForces, appliedParticleForces, appliedBodyForces,
+    //    tac, cac, udot, qdotdot, multipliers, udotErr);
 
     A_GB = tac.bodyAccelerationInGround;
 }
@@ -488,11 +488,11 @@ void SimbodyMatterSubsystem::calcProjectedMInv(const State&   s,
                                                Matrix&        GMInvGt) const
 {   getRep().calcGMInvGt(s, GMInvGt); }
 
-void SimbodyMatterSubsystem::
-solveForConstraintImpulses(const State&     state,
-                           const Vector&    deltaV,
-                           Vector&          impulse) const
-{   getRep().solveForConstraintImpulses(state,deltaV,impulse); }
+//void SimbodyMatterSubsystem::
+//solveForConstraintImpulses(const State&     state,
+//                           const Vector&    deltaV,
+//                           Vector&          impulse) const
+//{   getRep().solveForConstraintImpulses(state,deltaV,impulse); }
 
 
 void SimbodyMatterSubsystem::calcG(const State& s, Matrix& G) const 

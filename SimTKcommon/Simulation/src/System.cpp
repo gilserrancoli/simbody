@@ -166,7 +166,7 @@ void System::invalidateSystemTopologyCache() const
 
 
 
-const State& System::realizeTopology() const {return getSystemGuts().realizeTopology();}
+const State& System::realizeTopology() const { return getSystemGuts().realizeTopology(); }
 void System::realizeModel(State& s) const {getSystemGuts().realizeModel(s);}
 void System::realize(const State& s, Stage g) const {getSystemGuts().realize(s,g);}
 void System::calcDecorativeGeometryAndAppend
@@ -345,38 +345,47 @@ System::Guts* System::Guts::clone() const {
 //------------------------------------------------------------------------------
 const State& System::Guts::realizeTopology() const {
     State& defaultState = getRep().defaultState; // mutable
+	std::cout << "testa " << std::endl;
     if (getRep().systemTopologyHasBeenRealized())
         return defaultState;
 
     defaultState.clear();
     defaultState.setNumSubsystems(getNumSubsystems());
+	std::cout << "testb " << std::endl;
     for (SubsystemIndex i(0); i<getNumSubsystems(); ++i) 
         defaultState.initializeSubsystem(i, getRep().subsystems[i].getName(), 
                                             getRep().subsystems[i].getVersion());
+	std::cout << "testc " << std::endl;
         
     // Allow the concrete System subclass to do its processing.
     realizeTopologyImpl(defaultState); // defaultState is mutable
+	std::cout << "testd " << std::endl;
 
     // Realize any subsystems that the subclass didn't already take care of.
     for (SubsystemIndex i(0); i<getNumSubsystems(); ++i)
         if (getRep().subsystems[i].getStage(defaultState) < Stage::Topology)
             getRep().subsystems[i].getSubsystemGuts()
                                   .realizeSubsystemTopology(defaultState);
+	std::cout << "teste " << std::endl;
 
     // Force the defaultState's Topology stage version number to match the
     // Topology cache version in this System.
     defaultState.setSystemTopologyStageVersion
        (getRep().getSystemTopologyCacheVersion());
+	std::cout << "testf " << std::endl;
     defaultState.advanceSystemToStage(Stage::Topology);
+	std::cout << "testg " << std::endl;
 
     getRep().systemTopologyRealized = true; // mutable
+	std::cout << "testh " << std::endl;
     getRep().nRealizationsOfStage[Stage::Topology]++; // mutable counter
-
+	std::cout << "testi " << std::endl;
     // Realize the model using the default settings of the Model variables.
     // This allocates all the later-stage State variables.
     realizeModel(defaultState);
-
+	std::cout << "testj " << std::endl;
     return defaultState;
+	std::cout << "testk " << std::endl;
 }
 
 

@@ -393,53 +393,53 @@ virtual void setMobilizerDefaultAccelerationValues
 // for reversed mobilizers, so that the mobilizers themselves do not need to
 // know they have been reversed. The corresponding pure virtuals are protected.
 
-void setQToFitTransform
-   (const SBStateDigest& sbs, const Transform& X_FM, Vector& q) const
-{   setQToFitTransformImpl(sbs, isReversed() ? Transform(~X_FM) : X_FM, q); }
+//void setQToFitTransform
+//   (const SBStateDigest& sbs, const Transform& X_FM, Vector& q) const
+//{   setQToFitTransformImpl(sbs, isReversed() ? Transform(~X_FM) : X_FM, q); }
 
-void setQToFitRotation
-   (const SBStateDigest& sbs, const Rotation& R_FM, Vector& q) const
-{   setQToFitRotationImpl(sbs, isReversed() ? Rotation(~R_FM) : R_FM, q); }
+//void setQToFitRotation
+//   (const SBStateDigest& sbs, const Rotation& R_FM, Vector& q) const
+//{   setQToFitRotationImpl(sbs, isReversed() ? Rotation(~R_FM) : R_FM, q); }
 
 // Reversing a translation requires that we obtain the current orientation,
 // which we'll do assuming there is something meaningful in the rotational
 // part of the q's.
-void setQToFitTranslation
-   (const SBStateDigest& sbs, const Vec3& p_FM, Vector& q) const
-{   
-    if (!isReversed()) {setQToFitTranslationImpl(sbs, p_FM, q); return;}
+//void setQToFitTranslation
+//   (const SBStateDigest& sbs, const Vec3& p_FM, Vector& q) const
+//{   
+//    if (!isReversed()) {setQToFitTranslationImpl(sbs, p_FM, q); return;}
+//
+//    Transform X_MF; // note reversal of frames
+//    calcAcrossJointTransform(sbs, q, X_MF);
+//    setQToFitTranslationImpl(sbs, X_MF.R()*(-p_FM), q);
+//}
 
-    Transform X_MF; // note reversal of frames
-    calcAcrossJointTransform(sbs, q, X_MF);
-    setQToFitTranslationImpl(sbs, X_MF.R()*(-p_FM), q);
-}
+//void setUToFitVelocity
+//   (const SBStateDigest& sbs, const Vector& q, const SpatialVec& V_FM, Vector& u) const
+//{   if (!isReversed()) {setUToFitVelocityImpl(sbs, q, V_FM, u); return;}
+//    Transform X_MF; // note reversal of frames
+//    calcAcrossJointTransform(sbs, q, X_MF);
+//    setUToFitVelocityImpl(sbs, q, reverseSpatialVelocity(~X_MF,V_FM), u);
+//}
 
-void setUToFitVelocity
-   (const SBStateDigest& sbs, const Vector& q, const SpatialVec& V_FM, Vector& u) const
-{   if (!isReversed()) {setUToFitVelocityImpl(sbs, q, V_FM, u); return;}
-    Transform X_MF; // note reversal of frames
-    calcAcrossJointTransform(sbs, q, X_MF);
-    setUToFitVelocityImpl(sbs, q, reverseSpatialVelocity(~X_MF,V_FM), u);
-}
+//void setUToFitAngularVelocity
+//   (const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM, Vector& u)       const
+//{   if (!isReversed()) {setUToFitAngularVelocityImpl(sbs, q, w_FM, u); return;}
+//    Transform X_MF; // note reversal of frames
+//    calcAcrossJointTransform(sbs, q, X_MF);
+//    setUToFitAngularVelocityImpl(sbs, q, reverseAngularVelocity(~X_MF.R(),w_FM), u);
+//}
 
-void setUToFitAngularVelocity
-   (const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM, Vector& u)       const
-{   if (!isReversed()) {setUToFitAngularVelocityImpl(sbs, q, w_FM, u); return;}
-    Transform X_MF; // note reversal of frames
-    calcAcrossJointTransform(sbs, q, X_MF);
-    setUToFitAngularVelocityImpl(sbs, q, reverseAngularVelocity(~X_MF.R(),w_FM), u);
-}
-
-void setUToFitLinearVelocity
-   (const SBStateDigest& sbs, const Vector& q, const Vec3& v_FM, Vector& u) const
-{   if (!isReversed()) {setUToFitLinearVelocityImpl(sbs, q, v_FM, u); return;}
-    Transform X_MF; // note reversal of frames
-    calcAcrossJointTransform(sbs, q, X_MF);
-    //TODO: we have to assume angular velocity is zero here. Should be some
-    // way to get the joint to compute w_FM.
-    const SpatialVec V_FM( Vec3(0), v_FM );
-    setUToFitLinearVelocityImpl(sbs, q, reverseSpatialVelocity(~X_MF,V_FM)[1], u);
-}
+//void setUToFitLinearVelocity
+//   (const SBStateDigest& sbs, const Vector& q, const Vec3& v_FM, Vector& u) const
+//{   if (!isReversed()) {setUToFitLinearVelocityImpl(sbs, q, v_FM, u); return;}
+//    Transform X_MF; // note reversal of frames
+//    calcAcrossJointTransform(sbs, q, X_MF);
+//    //TODO: we have to assume angular velocity is zero here. Should be some
+//    // way to get the joint to compute w_FM.
+//    const SpatialVec V_FM( Vec3(0), v_FM );
+//    setUToFitLinearVelocityImpl(sbs, q, reverseSpatialVelocity(~X_MF,V_FM)[1], u);
+//}
 
 
     // VIRTUAL METHODS FOR SINGLE-NODE OPERATOR CONTRIBUTIONS //
@@ -1023,19 +1023,20 @@ RigidBodyNode(const MassProperties& mProps_B,
 // *defined*, not as it is after reversal (hence F0 instead of F and
 // M0 instead of M). The q's and u's have identical meanings for both
 // forward and reverse mobilizers.
-virtual void setQToFitTransformImpl
-   (const SBStateDigest&, const Transform& X_F0M0, Vector& q) const = 0;
-virtual void setQToFitRotationImpl
-   (const SBStateDigest&, const Rotation& R_F0M0, Vector& q) const = 0;
-virtual void setQToFitTranslationImpl
-   (const SBStateDigest&, const Vec3& p_F0M0, Vector& q) const = 0;
+// # test comment
+//virtual void setQToFitTransformImpl
+//   (const SBStateDigest&, const Transform& X_F0M0, Vector& q) const = 0;
+//virtual void setQToFitRotationImpl
+//   (const SBStateDigest&, const Rotation& R_F0M0, Vector& q) const = 0;
+//virtual void setQToFitTranslationImpl
+//   (const SBStateDigest&, const Vec3& p_F0M0, Vector& q) const = 0;
 
-virtual void setUToFitVelocityImpl
-   (const SBStateDigest&, const Vector& q, const SpatialVec& V_F0M0, Vector& u) const = 0;
-virtual void setUToFitAngularVelocityImpl
-   (const SBStateDigest&, const Vector& q, const Vec3& w_F0M0, Vector& u)       const = 0;
-virtual void setUToFitLinearVelocityImpl
-   (const SBStateDigest&, const Vector& q, const Vec3& v_F0M0, Vector& u) const = 0;
+//virtual void setUToFitVelocityImpl
+//   (const SBStateDigest&, const Vector& q, const SpatialVec& V_F0M0, Vector& u) const = 0;
+//virtual void setUToFitAngularVelocityImpl
+//   (const SBStateDigest&, const Vector& q, const Vec3& w_F0M0, Vector& u)       const = 0;
+//virtual void setUToFitLinearVelocityImpl
+//   (const SBStateDigest&, const Vector& q, const Vec3& v_F0M0, Vector& u) const = 0;
 
 typedef Array_<RigidBodyNode*> RigidBodyNodeList;
 

@@ -343,7 +343,7 @@ public:
     /// The default implementation uses a nonlinear optimizer to search for the best
     /// fit.  Whenever possible, subclasses should override this to provide a faster
     /// and more robust implementation.
-    virtual void setQToFitTransform(const State&, const Transform& X_FM, int nq, Real* q) const;
+    //virtual void setQToFitTransform(const State&, const Transform& X_FM, int nq, Real* q) const;
 
     /// Find a set of u's (generalized speeds) for this mobilizer that best approximate
     /// the supplied spatial velocity \p V_FM which requests the relative angular
@@ -356,7 +356,7 @@ public:
     /// The default implementation uses a nonlinear optimizer to search for the best
     /// fit.  Whenever possible, subclasses should override this to provide a faster
     /// and more robust implementation.
-    virtual void setUToFitVelocity(const State&, const SpatialVec& V_FM, int nu, Real* u) const;
+    //virtual void setUToFitVelocity(const State&, const SpatialVec& V_FM, int nu, Real* u) const;
 
     /// Implement this optional method if you would like your MobilizedBody to generate any suggestions
     /// for geometry that could be used as default visualization as an aid to understanding a system

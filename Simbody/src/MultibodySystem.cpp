@@ -179,19 +179,30 @@ MultibodySystem::updMobilityForces(const State& s, Stage g) const {
     //////////////////////////
 
 int MultibodySystemRep::realizeTopologyImpl(State& s) const {
+	std::cout << "testaa " << std::endl;
     assert(globalSub.isValid());
+	std::cout << "testbb " << std::endl;
     assert(matterSub.isValid());
+	std::cout << "testcc " << std::endl;
 
     // We do Matter subsystem first here in case any of the GlobalSubsystem
     // topology depends on Matter topology. That's unlikely though since
     // we don't know sizes until Model stage.
     getMatterSubsystem().getRep().realizeSubsystemTopology(s);
+	std::cout << "testdd " << std::endl;
+
     getGlobalSubsystem().getRep().realizeSubsystemTopology(s);
+	std::cout << "testee " << std::endl;
+
     for (int i=0; i < (int)forceSubs.size(); ++i)
         getForceSubsystem(forceSubs[i]).getRep().realizeSubsystemTopology(s);
+	std::cout << "testff " << std::endl;
+
 
     if (hasDecorationSubsystem())
         getDecorationSubsystem().getGuts().realizeSubsystemTopology(s);
+	std::cout << "testgg " << std::endl;
+
 
     return 0;
 }

@@ -190,25 +190,25 @@ public:
         }
     };
 
-    void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, Vector& q) const {
+    /*void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, Vector& q) const {
         impl.setQToFitTransform(sbs.getState(), X_FM, this->getNQInUse(sbs.getModelVars()), &q[this->getQIndex()]);
-    }
-    void setQToFitRotationImpl(const SBStateDigest& sbs, const Rotation& R_FM, Vector& q) const {
+    }*/
+    /*void setQToFitRotationImpl(const SBStateDigest& sbs, const Rotation& R_FM, Vector& q) const {
         setQToFitTransformImpl(sbs, Transform(R_FM), q);
     }
     void setQToFitTranslationImpl(const SBStateDigest& sbs, const Vec3& p_FM, Vector& q) const {
         setQToFitTransformImpl(sbs, Transform(p_FM), q);
-    }
+    }*/
 
-    void setUToFitVelocityImpl(const SBStateDigest& sbs, const Vector& q, const SpatialVec& V_FM, Vector& u) const {
+    /*void setUToFitVelocityImpl(const SBStateDigest& sbs, const Vector& q, const SpatialVec& V_FM, Vector& u) const {
         impl.setUToFitVelocity(sbs.getState(), V_FM, nu, &u[this->getUIndex()]);
-    }
-    void setUToFitAngularVelocityImpl(const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM, Vector& u) const {
+    }*/
+    /*void setUToFitAngularVelocityImpl(const SBStateDigest& sbs, const Vector& q, const Vec3& w_FM, Vector& u) const {
         setUToFitVelocityImpl(sbs, q, SpatialVec(w_FM, Vec3(0)), u);
-    }
-    void setUToFitLinearVelocityImpl(const SBStateDigest& sbs, const Vector& q, const Vec3& v_FM, Vector& u) const {
-        setUToFitVelocityImpl(sbs, q, SpatialVec(Vec3(0), v_FM), u);
-    }
+    }*/
+    //void setUToFitLinearVelocityImpl(const SBStateDigest& sbs, const Vector& q, const Vec3& v_FM, Vector& u) const {
+    //    setUToFitVelocityImpl(sbs, q, SpatialVec(Vec3(0), v_FM), u);
+    //}
 
         // VIRTUAL METHODS FOR SINGLE-NODE OPERATOR CONTRIBUTIONS //
 

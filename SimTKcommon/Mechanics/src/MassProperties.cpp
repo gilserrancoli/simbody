@@ -139,7 +139,7 @@ ArticulatedInertia_<P>::shiftInPlace(const Vec3P& s) {
 // Instantiate so we catch bugs now.
 template class ArticulatedInertia_<float>;
 template class ArticulatedInertia_<double>;
-
+template class ArticulatedInertia_<adouble>;
 
 
 } // namespace SimTK

@@ -65,45 +65,45 @@ RBNodePlanar(const MassProperties&    mProps_B,
 // This has a default implementation but it rotates first then translates,
 // which works fine for the normal Planar joint but produces wrong behavior
 // when the mobilizer is reversed.
-void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
-                            Vector& q) const override 
-{
-    setQToFitTranslationImpl(sbs, X_FM.p(), q); // see below
-    setQToFitRotationImpl(sbs, X_FM.R(), q);
-}
+//void setQToFitTransformImpl(const SBStateDigest& sbs, const Transform& X_FM, 
+//                            Vector& q) const override 
+//{
+//    setQToFitTranslationImpl(sbs, X_FM.p(), q); // see below
+//    setQToFitRotationImpl(sbs, X_FM.R(), q);
+//}
 
-void setQToFitRotationImpl(const SBStateDigest& sbs,
-                           const Rotation& R_FM, Vector& q) const override {
-    // The only rotation our planar joint can handle is about z.
-    // TODO: should use 321 to deal with singular configuration (angle2==pi/2) better;
-    // in that case 1 and 3 are aligned and the conversion routine allocates all the
-    // rotation to whichever comes first.
-    // TODO: isn't there a better way to come up with "the rotation around z that
-    // best approximates a rotation R"?
-    const Vec3 angles123 = R_FM.convertRotationToBodyFixedXYZ();
-    this->toQ(q)[0] = angles123[2];
-}
-void setQToFitTranslationImpl(const SBStateDigest& sbs,
-                              const Vec3&  p_FM, Vector& q) const override {
-    // Ignore translation in the z direction.
-    this->toQ(q)[1] = p_FM[0]; // x
-    this->toQ(q)[2] = p_FM[1]; // y
-}
+//void setQToFitRotationImpl(const SBStateDigest& sbs,
+//                           const Rotation& R_FM, Vector& q) const override {
+//    // The only rotation our planar joint can handle is about z.
+//    // TODO: should use 321 to deal with singular configuration (angle2==pi/2) better;
+//    // in that case 1 and 3 are aligned and the conversion routine allocates all the
+//    // rotation to whichever comes first.
+//    // TODO: isn't there a better way to come up with "the rotation around z that
+//    // best approximates a rotation R"?
+//    const Vec3 angles123 = R_FM.convertRotationToBodyFixedXYZ();
+//    this->toQ(q)[0] = angles123[2];
+//}
+//void setQToFitTranslationImpl(const SBStateDigest& sbs,
+//                              const Vec3&  p_FM, Vector& q) const override {
+//    // Ignore translation in the z direction.
+//    this->toQ(q)[1] = p_FM[0]; // x
+//    this->toQ(q)[2] = p_FM[1]; // y
+//}
 
-void setUToFitAngularVelocityImpl(const SBStateDigest& sbs,
-                                  const Vector&, const Vec3& w_FM,
-                                  Vector& u) const override {
-    // We can represent the z angular velocity exactly, but nothing else.
-    this->toU(u)[0] = w_FM[2];
-}
-void setUToFitLinearVelocityImpl(const SBStateDigest& sbs,
-                                 const Vector&, const Vec3& v_FM,
-                                 Vector& u) const override
-{
-    // Ignore translational velocity in the z direction.
-    this->toU(u)[1] = v_FM[0]; // x
-    this->toU(u)[2] = v_FM[1]; // y
-}
+//void setUToFitAngularVelocityImpl(const SBStateDigest& sbs,
+//                                  const Vector&, const Vec3& w_FM,
+//                                  Vector& u) const override {
+//    // We can represent the z angular velocity exactly, but nothing else.
+//    this->toU(u)[0] = w_FM[2];
+//}
+//void setUToFitLinearVelocityImpl(const SBStateDigest& sbs,
+//                                 const Vector&, const Vec3& v_FM,
+//                                 Vector& u) const override
+//{
+//    // Ignore translational velocity in the z direction.
+//    this->toU(u)[1] = v_FM[0]; // x
+//    this->toU(u)[2] = v_FM[1]; // y
+//}
 
 enum {PoolSize=2};
 enum {CosQ=0, SinQ=1};
