@@ -55,7 +55,8 @@
 #include <complex>
 #include <iostream>
 #include <limits>
-#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
+#include <adolc.h>
+#include <adtl.h>
 
 
 using std::complex;
@@ -358,6 +359,14 @@ inline bool isNumericallyEqual(const double& a, const double& b,
 	if (isNaN(a)) return isNaN(b); else if (isNaN(b)) return false;
 	const double scale = std::max(std::max(std::abs(a), std::abs(b)), 1.);
 	return std::abs(a - b) <= scale*(double)tol;
+}
+/// Compare two Reals for approximate equality.
+inline bool isNumericallyEqual(const adouble& a, const double& b,
+	double tol = RTraits<adouble>::getDefaultTolerance())
+{   
+	if (isNaN(a)) return isNaN(b); else if (isNaN(b)) return false;
+	const adouble scale = fmax(fmax(fabs(a), fabs(b)), 1.);
+	return fabs(a - b) <= scale.getValue()*tol;
 }
 /// Compare two Reals for approximate equality.
 inline bool isNumericallyEqual(const adouble& a, const adouble& b,
@@ -1269,6 +1278,10 @@ SimTK_DEFINE_REAL_NTRAITS(double);
 SimTK_DEFINE_REAL_NTRAITS(long double);
 #undef SimTK_DEFINE_REAL_NTRAITS
 
+inline adouble adolc_sqrt(const badouble& x) {
+/* TODOautodiff temporary hack*/
+    return sqrt(x);
+}
 
 // Definition for adouble only
 template <> class NTraits<adouble> {                  
@@ -1286,7 +1299,7 @@ public:
     typedef T                TElement;          
     typedef T                TRow;              
     typedef T                TCol;              
-    typedef T                TSqrt;             
+    typedef T                TSqrt;
     typedef T                TAbs;              
     typedef T                TStandard;         
     typedef T                TInvert;           
@@ -1343,14 +1356,14 @@ public:
     static       TWithoutNegator& updCastAwayNegatorIfAny(T& t)             
         {return reinterpret_cast<TWithoutNegator&>(t);}                     
     static ScalarNormSq scalarNormSqr(const T& t) {return t*t;}             
-    static TSqrt        sqrt(const T& t) {return sqrt(t);}             
+    static TSqrt        sqrt(const T& t) {return adolc_sqrt(t);}
     static TAbs         abs(const T& t) {return fabs(t);}               
     static const TStandard& standardize(const T& t) {return t;}             
     static TNormalize normalize(const T& t) {return (t>0?T(1):(t<0?T(-1):getNaN()));} 
     static TInvert invert(const T& t) {return T(1)/t;}                      
     /* properties of this floating point representation, with memory addresses */     
-    static const T& getEps()          {return RTraits<T>::getEps();}                                    
-    static const T& getSignificant()  {return RTraits<T>::getSignificant();}                            
+    static const T& getEps()          {static const T c=RTraits<T>::getEps(); return c;}
+    static const T& getSignificant()  {static const T c=RTraits<T>::getSignificant(); return c;}
     static const T& getNaN()          {static const T c=std::numeric_limits<T>::quiet_NaN(); return c;} 
     static const T& getInfinity()     {static const T c=std::numeric_limits<T>::infinity();  return c;} 
     static const T& getLeastPositive(){static const T c=std::numeric_limits<T>::min();       return c;} 
@@ -1358,17 +1371,18 @@ public:
     static const T& getLeastNegative(){static const T c=-std::numeric_limits<T>::min();      return c;} 
     static const T& getMostNegative() {static const T c=-std::numeric_limits<T>::max();      return c;} 
     static const T& getSqrtEps()      {static const T c=sqrt(getEps());                 return c;} 
-		static const T& getTiny()         {static const T c=pow(getEps(), (T)1.25L);        return c;} 
-    static bool NTraits<adouble>::isFinite(const T& t) {return SimTK::isFinite(t);}   
-    static bool NTraits<adouble>::isNaN (const T& t) {return SimTK::isNaN(t);}
-    static bool NTraits<adouble>::isInf   (const T& t) {return SimTK::isInf(t);}      
+	static const T& getTiny()         {static const T c=pow(getEps(), (T)1.25L);        return c;} 
+
+    static bool isFinite(const T& t) {return SimTK::isFinite(t);}
+    static bool isNaN   (const T& t) {return SimTK::isNaN(t);}
+    static bool isInf   (const T& t) {return SimTK::isInf(t);}
     /* Methods to use for approximate comparisons. Perform comparison in the wider of the two */                
     /* precisions, using the default tolerance from the narrower of the two precisions.       */                
     static double getDefaultTolerance() {return RTraits<T>::getDefaultTolerance();}                             
-    static bool isNumericallyEqual(const T& t, const float& f) {return isNumericallyEqual(t,f);}         
-    static bool isNumericallyEqual(const T& t, const double& d) {return isNumericallyEqual(t,d);}        
-    static bool isNumericallyEqual(const T& t, const adouble& d) {return isNumericallyEqual(t,d);}        
-    static bool isNumericallyEqual(const T& t, const long double& l) {return isNumericallyEqual(t,l);}   
+    static bool isNumericallyEqual(const T& t, const float& f) {return SimTK::isNumericallyEqual(t,f);}
+    static bool isNumericallyEqual(const T& t, const double& d) {return SimTK::isNumericallyEqual(t,d);}
+    static bool isNumericallyEqual(const T& t, const adouble& d) {return SimTK::isNumericallyEqual(t,d);}
+    static bool isNumericallyEqual(const T& t, const long double& l) {return isNumericallyEqual(t,l);}
     static bool isNumericallyEqual(const T& t, int i) {return isNumericallyEqual(t,i);}                  
     /* Here the tolerance is given so we don't have to figure it out. */                                                        
     static bool isNumericallyEqual(const T& t, const float& f, double tol){return isNumericallyEqual(t,f,tol);}          

@@ -1,8 +1,19 @@
 # visit the CPodes directory to gather up source and tests
-add_subdirectory(src/CPodes)
+# TODOautodiff add_subdirectory(src/CPodes)
 
 # add in local source and headers here
-file(GLOB src_files  ./src/*.cpp)
+# TODOautodiff file(GLOB src_files  ./src/*.cpp)
+file(GLOB src_files ./src/AbstractIntegratorRep.cpp
+                    ./src/Integrator.cpp
+                    ./src/RungeKutta2Integrator.cpp
+                    ./src/RungeKutta3Integrator.cpp
+                    ./src/RungeKuttaFeldbergIntegrator.cpp
+                    ./src/RungeKuttaMersonIntegrator.cpp
+                    ./src/SemiExplicitEuler2Integrator.cpp
+                    ./src/SemiExplicitEulerIntegrator.cpp
+                    ./src/TimeStepper.cpp
+                    ./src/VerletIntegrator.cpp
+    )
 file(GLOB incl_files ./src/*.h)
 
 # append to the local scope copy, and then copy up to parent scope

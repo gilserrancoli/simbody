@@ -1,12 +1,12 @@
 #include "Simbody.h"
 #include "SimTKcommon.h"
-#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
-#include <C:\ADOL-C-sparse\include\adolc\adolc_sparse.h>
+#include <adolc.h>
+#include <adolc_sparse.h>
 #include "SimTKmath.h"
 
 
 using namespace SimTK;
-void main() {
+int main() {
 	// Define the system.
 	MultibodySystem system;
 	SimbodyMatterSubsystem matter(system);
@@ -32,7 +32,7 @@ void main() {
 	pendulum2.setRate(state, 5.0);
 
 	// Our implementation
-
+    system.realize(state, SimTK::Stage::Dynamics);
 
 
 	int nb = matter.getNumBodies();
@@ -98,3 +98,12 @@ void main() {
 
 
 }
+
+
+	//// Simulate for 20 seconds.
+	//RungeKuttaMersonIntegrator integ(system);
+	//TimeStepper ts(system, integ);
+	//ts.initialize(state);
+	//ts.stepTo(20.0);
+	//return ;0
+
