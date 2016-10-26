@@ -518,8 +518,8 @@ public:
             "MySinCos::Implementation::calcCachedValueVirtual():"
             " derivOrder %d seen but only 0 allowed.", derivOrder);
 
-        value[0] = std::sin(s.getTime());
-        value[1] = std::cos(s.getTime());
+        value[0] =sin(s.getTime());
+        value[1] = cos(s.getTime());
     }
 };
 
@@ -762,7 +762,7 @@ void testOne() {
             cout << "qSum=" << subsys.getQSum(state) << " uSum=" << subsys.getUSum(state) << endl;
             cout << "three=" << three.getValue(state) << " v3const=" << v3const.getValue(state) << endl;
             cout << "cos2pit=" << cos2pit.getValue(state) 
-                 << " cos(2pi*t)=" << std::cos(2*Pi*state.getTime()) << endl;
+                 << " cos(2pi*t)=" << cos(2*Pi*state.getTime()) << endl;
             cout << "Min(cos2pit)=" << minCos2pit.getValue(state) 
                  << " @t=" << minCos2pit.getTimeOfExtremeValue(state) << endl;
             cout << "Max(cos2pit)=" << maxCos2pit.getValue(state) 
@@ -772,7 +772,7 @@ void testOne() {
             cout << "MaxAbs(cos2pit)=" << maxAbsCos2pit.getValue(state) 
                  << " @t=" << maxAbsCos2pit.getTimeOfExtremeValue(state) << endl;
             cout << "sin2pitOver2pi=" << sin2pitOver2pi.getValue(state) 
-                 << " sin(2pi*t)/2pi=" << std::sin(2*Pi*state.getTime())/(2*Pi) << endl;
+                 << " sin(2pi*t)/2pi=" << sin(2*Pi*state.getTime())/(2*Pi) << endl;
             cout << "d/dt sin2pitOver2pi=" 
                  << sin2pitOver2pi.getValue(state,1) << endl;
             cout << "dInteg=" 
