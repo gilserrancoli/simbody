@@ -23,8 +23,8 @@
 
 #include <simbody.h>
 #include <SimTKcommon.h>
-#include <C:\ADOL-C-sparse\include\adolc\adolc.h>
-#include <C:\ADOL-C-sparse\include\adolc\adolc_sparse.h>
+#include <adolc.h>
+#include <adolc_sparse.h>
 //
 #include <cstdlib> // for rand()
 #include <ctime>

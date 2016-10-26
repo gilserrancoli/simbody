@@ -4,6 +4,12 @@
 #include <adolc_sparse.h>
 #include "SimTKmath.h"
 
+#include <iostream>
+#include <iterator>
+#include <random>
+#include <cassert>
+#include <algorithm>
+
 
 using namespace SimTK;
 int main() {
@@ -29,13 +35,20 @@ int main() {
 
 	// Initialize the system and state.
 	State state = system.realizeTopology();
+	pendulum1.setRate(state, 6.0);
+	pendulum1.setAngle(state, 1);
 	pendulum2.setRate(state, 5.0);
+	pendulum2.setAngle(state, 0.5);
 
 	// Our implementation
-    system.realize(state, SimTK::Stage::Dynamics);
-
+    //system.realize(state, SimTK::Stage::Dynamics);
 
 	int nb = matter.getNumBodies();
+	adouble x1, x2, x3, x4; // independent variables.
+	adouble y1, y2, y3; // dependent variables.
+
+	trace_on(1);
+
 	system.realize(state, Stage::Velocity);
 
 	MobilizedBodyIndex indxpd1 = pendulum1.getMobilizedBodyIndex();
@@ -50,60 +63,47 @@ int main() {
 	SpatialInertia I1 = pendulum1.getBodySpatialInertiaInGround(state);
 	SpatialInertia I2 = pendulum2.getBodySpatialInertiaInGround(state);
 
-	Vector_<SpatialVec> TotGyrCorIn1;
-	Vector_<SpatialVec> TotGyrCorIn2;
+	SpatialVec TotGyrCorIn1 = I1*pdl1_CorAcc + pdl1_GyrFor;
+	SpatialVec TotGyrCorIn2 = I2*pdl2_CorAcc + pdl2_GyrFor;
 
-	TotGyrCorIn1 = I1*pdl1_CorAcc + pdl1_GyrFor;
-	TotGyrCorIn2 = I2*pdl2_CorAcc + pdl2_GyrFor;
+	Vector Q = state.getQ();
+	Vector U = state.getY();
 
-	Vector a = state.getQ();
-	adouble aa = a.get(0);
+	// Try to differentiate something
 
-	printf("Number of Qs %d", state.getNQ());
-	printf("Number of Us %d", state.getNU());
+	// Indicate independent variables.
+	x1 <<= Q.get(0).getValue();
+	x2 <<= Q.get(1).getValue();
+	x3 <<= U.get(0).getValue();
+	x4 <<= U.get(1).getValue();
 
-	//
+	Vec3 TotGyrCorIn1_b1_F = TotGyrCorIn1[0];
+	double TotGyrCorIn1_b1_F_f1 = TotGyrCorIn1_b1_F[0].getValue();
+	double TotGyrCorIn1_b1_F_f2 = TotGyrCorIn1_b1_F[1].getValue();
+	double TotGyrCorIn1_b1_F_f3 = TotGyrCorIn1_b1_F[2].getValue();
 
-	///// This differentiates a function R^n -> R^m at px using ADOL-C.
-	//void auto_jacobian(int n, int m, const double* px, double** J) {
+	// Indicate dependent variables.
+	y1 >>= TotGyrCorIn1_b1_F_f1;
+	y2 >>= TotGyrCorIn1_b1_F_f2;
+	y3 >>= TotGyrCorIn1_b1_F_f3;
 
-	//	short int tag = 0;
+	trace_off();
 
-	//	// Start recording information for computing derivatives.
-	//	trace_on(tag);
+	double xp[4];
+	xp[0] = Q.get(0).getValue(); xp[1] = U.get(0).getValue();
+	xp[2] = Q.get(1).getValue(); xp[3] = U.get(1).getValue();
 
-	//	SimTK::vector<adouble> x(n);
-	//	SimTK::vector<adouble> y(m);
-	//	SimTK::vector<double> py(m); // p for "passive variable;" ADOL-C terminology.
+	double** J;
+	J = myalloc(3, 4);
+	jacobian(1, 3, 4, xp, J);
+	double *v1, *z1;
+	v1 = myalloc(4); z1 = myalloc(3);
+	jac_vec(1, 3, 4, xp, v1, z1);
 
-	//	// Indicate independent variables.
-	//	for (int i = 0; i < n; ++i) x[i] <<= px[i];
-
-	//	// Evaluate function.
-	//	constraint_function_dense(n, m, x.data(), y.data());
-
-
-
-	//	// Indicate dependent variables.
-	//	for (int j = 0; j < m; ++j) y[j] >>= py[j];
-
-	//	// Stop recording.
-	//	trace_off();
-
-	//	// Use the recorded tape to compute the jacobian.
-	//	int success = jacobian(tag, m, n, px, J);
-	//	assert(success == 3);
-	//}
-
-
+	printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n", J[0], J[1], J[2], J[3], J[4], J[5], J[6], J[7], J[8], J[9], J[10], J[11]);
+	printf("Jacobian vector %f %f %f %f \n ", z1[0], z1[1], z1[2], z1[3]);
 
 }
 
 
-	//// Simulate for 20 seconds.
-	//RungeKuttaMersonIntegrator integ(system);
-	//TimeStepper ts(system, integ);
-	//ts.initialize(state);
-	//ts.stepTo(20.0);
-	//return ;0
 
