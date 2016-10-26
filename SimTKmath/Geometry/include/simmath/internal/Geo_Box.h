@@ -66,7 +66,7 @@ Cost is 4 flops to sort the edges. **/
 Box_& setHalfLengths(const Vec3P& halfLengths) {
     SimTK_ERRCHK3(halfLengths >= 0, "Geo::Box_::setHalfLengths()",
         "Half lengths must be nonnegative; got %g,%g,%g.",
-        (double)halfLengths[0].getValue(),(double)halfLengths[1].getValue(),(double)halfLengths[2].getValue());
+        (double)halfLengths[0],(double)halfLengths[1],(double)halfLengths[2]);
     h = halfLengths; 
     sortEdges();
     return *this; 

@@ -485,15 +485,15 @@ solve(int                                 phase,
         const Real rate = normRMSenf/prevNormRMSenf;
 
         if (rate > 1) {
-            SimTK_DEBUG3("GOT WORSE@%d: sor=%g rate=%g\n", its, sor, rate);
+            SimTK_DEBUG3("GOT WORSE@%d: sor=%g rate=%g\n", its, sor.value(), rate.getValue());
             if (sor > .1)
                 sor = fmax(.8*sor, .1);
         } 
 
         #ifndef NDEBUG
         printf("%d/%d: EST rmsAll=%g rmsEnf=%g rate=%g\n", phase, its,
-                     normRMSall, normRMSenf, 
-                     normRMSenf/prevNormRMSenf);
+                     normRMSall.value(), normRMSenf.value(),
+                     (normRMSenf/prevNormRMSenf).value());
         #endif
         //#ifdef NDEBUG // i.e., NOT debugging (TODO)
         //if (its > 90)
@@ -504,7 +504,7 @@ solve(int                                 phase,
         if (normRMSenf < m_convergenceTol) //TODO: add failure-to-improve check
         {
             SimTK_DEBUG3("PGS %d converged to %g in %d iters\n", 
-                         phase, normRMSenf, its);
+                         phase, normRMSenf.value(), its);
             converged = true;
             break;
         }
@@ -515,7 +515,7 @@ solve(int                                 phase,
 
     if (!converged) {
         SimTK_DEBUG3("PGS %d CONVERGENCE FAILURE: %d iters -> norm=%g\n",
-               phase, its, normRMSenf);
+               phase, its, normRMSenf.value());
         ++m_nFail[phase];
     }
 
@@ -588,20 +588,20 @@ solveBilateral
         const Real rate = normRMSenf/prevNormRMSenf;
 
         if (rate > 1) {
-            SimTK_DEBUG3("GOT WORSE@%d: sor=%g rate=%g\n", its, sor, rate);
+            SimTK_DEBUG3("GOT WORSE@%d: sor=%g rate=%g\n", its, sor.value(), rate.value());
             if (sor > .1)
                 sor = fmax(.8*sor, .1);
         } 
 
         #ifndef NDEBUG
         printf("iter %d: EST rmsEnf=%g rate=%g\n", its,
-                     normRMSenf, normRMSenf/prevNormRMSenf);
+                     normRMSenf.value(), (normRMSenf/prevNormRMSenf).value());
         #endif
 
         if (normRMSenf < m_convergenceTol) //TODO: add failure-to-improve check
         {
             SimTK_DEBUG2("BILATERAL PGS converged to %g in %d iters\n", 
-                         normRMSenf, its);
+                         normRMSenf.value(), its);
             converged = true;
             break;
         }
@@ -612,7 +612,7 @@ solveBilateral
 
     if (!converged) {
         SimTK_DEBUG2("BILATERAL PGS CONVERGENCE FAILURE: %d iters -> norm=%g\n",
-              its, normRMSenf);
+              its, normRMSenf.value());
         ++m_nBilateralFail;
     }
 
