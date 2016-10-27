@@ -18,7 +18,7 @@ int main() {
 	MultibodySystem system;
 	SimbodyMatterSubsystem matter(system);
 	GeneralForceSubsystem forces(system);
-	Force::UniformGravity gravity(forces, matter, Vec3(10, Real(-9.8), 3));
+	Force::UniformGravity gravity(forces, matter, Vec3(0, Real(-9.81), 0));
 
 	// Describe mass and visualization properties for a generic body.
 	Body::Rigid bodyInfo(MassProperties(1.0, Vec3(0), UnitInertia(1)));
@@ -29,6 +29,9 @@ int main() {
 	MobilizedBody::Pin pendulum2(pendulum1, Transform(Vec3(0)),
 		bodyInfo, Transform(Vec3(0, 1, 0)));
 
+	MobilizedBodyIndex indxpd1 = pendulum1.getMobilizedBodyIndex();
+	MobilizedBodyIndex indxpd2 = pendulum2.getMobilizedBodyIndex();
+
 	// Initialize the system and state.
 	State state = system.realizeTopology();
 	pendulum1.setRate(state, 5.0);
@@ -38,9 +41,9 @@ int main() {
 
 	double xp[4];
 	xp[0] = 1; /*0.5;*/
-	xp[1] = 1; /*0.6;*/
-	xp[2] = 1; /*0.1;*/
-	xp[3] = 1; /*0.2;*/
+	xp[1] = 0.5; /*0.6;*/
+	xp[2] = 5; /*0.1;*/
+	xp[3] = 5; /*0.2;*/
 
 	trace_on(1);
 
@@ -51,48 +54,55 @@ int main() {
 	U[0] <<= xp[2];
 	U[1] <<= xp[3];
 
-	//adouble y1 = 2.0 * Q[0];
-	//adouble y2 = 3.0 * Q[1];
-	//adouble y3 = 4.5 * U[1];
-
-	//double yp[3];
-	//y1 >>= yp[0];
-	//y2 >>= yp[1];
-	//y3 >>= yp[2];
-
 	system.realize(state, Stage::Velocity);
 
-	MobilizedBodyIndex indxpd1 = pendulum1.getMobilizedBodyIndex();
-	MobilizedBodyIndex indxpd2 = pendulum2.getMobilizedBodyIndex();
 
-	SpatialVec pdl1_CorAcc = matter.getTotalCoriolisAcceleration(state, indxpd1);
-	SpatialVec pdl2_CorAcc = matter.getTotalCoriolisAcceleration(state, indxpd2);
 
-	SpatialVec pdl1_GyrFor = matter.getGyroscopicForce(state, indxpd1);
-	SpatialVec pdl2_GyrFor = matter.getGyroscopicForce(state, indxpd2);
+	//SpatialVec pdl1_CorAcc = matter.getTotalCoriolisAcceleration(state, indxpd1);
+	//SpatialVec pdl2_CorAcc = matter.getTotalCoriolisAcceleration(state, indxpd2);
 
-	SpatialInertia I1 = pendulum1.getBodySpatialInertiaInGround(state);
-	SpatialInertia I2 = pendulum2.getBodySpatialInertiaInGround(state);
+	//SpatialVec pdl1_GyrFor = matter.getGyroscopicForce(state, indxpd1);
+	//SpatialVec pdl2_GyrFor = matter.getGyroscopicForce(state, indxpd2);
 
-	SpatialVec TotGyrCorIn1 = I1*pdl1_CorAcc + pdl1_GyrFor;
-	SpatialVec TotGyrCorIn2 = I2*pdl2_CorAcc + pdl2_GyrFor;
+	//SpatialInertia I1 = pendulum1.getBodySpatialInertiaInGround(state);
+	//SpatialInertia I2 = pendulum2.getBodySpatialInertiaInGround(state);
 
-	Vector appliedmobilityforces(0);
-	Vector_<SpatialVec> appliedbodyforces(0);
-	Vector knownudot(0);
-	Vector knownlambda(0);
-	Vector residualforces(2);
-		
-	matter.calcResidualForce(state, appliedmobilityforces, appliedbodyforces, knownudot, knownlambda, residualforces);
+	//SpatialVec TotGyrCorIn1 = I1*pdl1_CorAcc + pdl1_GyrFor;
+	//SpatialVec TotGyrCorIn2 = I2*pdl2_CorAcc + pdl2_GyrFor;
 
-	std::cout << pdl1_CorAcc << std::endl;
+
+	// Computation residual forces
+	Vector appliedMobilityForces(0);
+	Vector_<SpatialVec> appliedBodyForces;
+	appliedBodyForces.resize(2);
+	appliedBodyForces.setToZero();
+	Vector knownUdot(0);
+	Vector residualMobilityForces(2);
+	residualMobilityForces.resize(2);
+	residualMobilityForces.setToZero();
+
+	// appliedBodyForces => gravity as body force
+	Vec3 g = gravity.getGravity();
+	Vector_<SpatialVec> pd_gravity;
+	pd_gravity.resize(3);
+	pd_gravity.setToZero();
+	matter.addInStationForce(state, indxpd1, pendulum1.getBodyMassCenterStation(state), pendulum1.getBodyMass(state)*g, pd_gravity);
+	matter.addInStationForce(state, indxpd2, pendulum2.getBodyMassCenterStation(state), pendulum2.getBodyMass(state)*g, pd_gravity);
+	appliedBodyForces = pd_gravity;
+
+	matter.calcResidualForceIgnoringConstraints(state, appliedMobilityForces,appliedBodyForces, knownUdot, residualMobilityForces);
+	std::cout << residualMobilityForces[0].getValue() << std::endl;
+	std::cout << residualMobilityForces[1].getValue() << std::endl;
+
+
+	/*std::cout << pdl1_CorAcc << std::endl;
 	std::cout << pdl2_CorAcc << std::endl;
 
 	std::cout << pdl1_GyrFor << std::endl;
 	std::cout << pdl2_GyrFor << std::endl;
 
 	std::cout << TotGyrCorIn1 << std::endl;
-	std::cout << TotGyrCorIn2 << std::endl;
+	std::cout << TotGyrCorIn2 << std::endl;*/
 
 	//// Try to differentiate something
 
@@ -108,7 +118,7 @@ int main() {
 	//x4 <<= 0;*/
 
 	//// Indicate dependent variables.
-	Vec3 TotGyrCorIn1_b1_F = TotGyrCorIn1[1];
+	/*Vec3 TotGyrCorIn1_b1_F = TotGyrCorIn1[1];
 	adouble y1 = TotGyrCorIn1_b1_F[0];
 	adouble y2 = TotGyrCorIn1_b1_F[1];
 	adouble y3 = TotGyrCorIn1_b1_F[2];
@@ -118,17 +128,32 @@ int main() {
 	   
 	y1 >>= TotGyrCorIn1_b1_F_f1;
 	y2 >>= TotGyrCorIn1_b1_F_f2;
-	y3 >>= TotGyrCorIn1_b1_F_f3;  
+	y3 >>= TotGyrCorIn1_b1_F_f3;  */
+
+	adouble y1 = residualMobilityForces[0];
+	adouble y2 = residualMobilityForces[1];
+	double residualMobilityForces_f0;
+	double residualMobilityForces_f1;
+
+	y1 >>= residualMobilityForces_f0;
+	y2 >>= residualMobilityForces_f1;
 
 	trace_off();
+
+	double** J;
+	J = myalloc(2, 4);
+	jacobian(1, 2, 4, xp, J);
+	printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n",
+		J[0][0], J[0][1], J[0][2], J[0][3],
+		J[1][0], J[1][1], J[1][2], J[1][3]);
 
 	///*double xp[4];
 	//xp[0] = Q.get(0).getValue(); xp[1] = U.get(0).getValue();
 	//xp[2] = Q.get(1).getValue(); xp[3] = U.get(1).getValue();*/
 
-	double** J;
+	/*double** J;
 	J = myalloc(3, 4);
-	jacobian(1, 3, 4, xp, J);
+	jacobian(1, 3, 4, xp, J);*/
 	//double *v1, *z1;
 	//v1 = myalloc(4); z1 = myalloc(3);
 	//v1[0] = 1.0;
@@ -137,12 +162,13 @@ int main() {
 	//v1[3] = 1.0;
 	//jac_vec(1, 3, 4, xp, v1, z1);
 
-	////printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n", J[0], J[1], J[2], J[3], J[4], J[5], J[6], J[7], J[8], J[9], J[10], J[11]);
-	printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n",
+	/*printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n",
 	     J[0][0], J[0][1], J[0][2], J[0][3],
 	     J[1][0], J[1][1], J[1][2], J[1][3],
-	     J[2][0], J[2][1], J[2][2], J[2][3]);
+	     J[2][0], J[2][1], J[2][2], J[2][3]);*/
 	//printf("Jacobian vector %f %f %f %f \n ", z1[0], z1[1], z1[2], z1[3]);
+
+
 }
 
 
