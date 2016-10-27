@@ -36,20 +36,20 @@ int main() {
 	pendulum2.setRate(state, 5.0);
 	pendulum2.setAngle(state, 0.5);
 
-	//double xp[4];
-	//xp[0] = 1; /*0.5;*/
-	//xp[1] = 1; /*0.6;*/
-	//xp[2] = 1; /*0.1;*/
-	//xp[3] = 1; /*0.2;*/
+	double xp[4];
+	xp[0] = 1; /*0.5;*/
+	xp[1] = 1; /*0.6;*/
+	xp[2] = 1; /*0.1;*/
+	xp[3] = 1; /*0.2;*/
 
-	//trace_on(1);
+	trace_on(1);
 
-	//Vector& Q = state.updQ();
-	//Vector& U = state.updU();
-	//Q[0] <<= xp[0];
-	//Q[1] <<= xp[1];
-	//U[0] <<= xp[2];
-	//U[1] <<= xp[3];
+	Vector& Q = state.updQ();
+	Vector& U = state.updU();
+	Q[0] <<= xp[0];
+	Q[1] <<= xp[1];
+	U[0] <<= xp[2];
+	U[1] <<= xp[3];
 
 	//adouble y1 = 2.0 * Q[0];
 	//adouble y2 = 3.0 * Q[1];
@@ -77,6 +77,14 @@ int main() {
 	SpatialVec TotGyrCorIn1 = I1*pdl1_CorAcc + pdl1_GyrFor;
 	SpatialVec TotGyrCorIn2 = I2*pdl2_CorAcc + pdl2_GyrFor;
 
+	Vector appliedmobilityforces(0);
+	Vector_<SpatialVec> appliedbodyforces(0);
+	Vector knownudot(0);
+	Vector knownlambda(0);
+	Vector residualforces(2);
+		
+	matter.calcResidualForce(state, appliedmobilityforces, appliedbodyforces, knownudot, knownlambda, residualforces);
+
 	std::cout << pdl1_CorAcc << std::endl;
 	std::cout << pdl2_CorAcc << std::endl;
 
@@ -86,41 +94,41 @@ int main() {
 	std::cout << TotGyrCorIn1 << std::endl;
 	std::cout << TotGyrCorIn2 << std::endl;
 
-	////// Try to differentiate something
+	//// Try to differentiate something
 
-	////// Indicate independent variables.
-	/////*adouble x1 = Q.get(0);
-	////adouble x2 = Q.get(1);
-	////adouble x3 = U.get(0);
-	////adouble x4 = U.get(1);
+	//// Indicate independent variables.
+	///*adouble x1 = Q.get(0);
+	//adouble x2 = Q.get(1);
+	//adouble x3 = U.get(0);
+	//adouble x4 = U.get(1);
 
-	////x1 <<= 0;
-	////x2 <<= 0;
-	////x3 <<= 0;
-	////x4 <<= 0;*/
+	//x1 <<= 0;
+	//x2 <<= 0;
+	//x3 <<= 0;
+	//x4 <<= 0;*/
 
-	////// Indicate dependent variables.
-	////Vec3 TotGyrCorIn1_b1_F = TotGyrCorIn1[0];
-	////adouble y1 = TotGyrCorIn1_b1_F[0];
-	////adouble y2 = TotGyrCorIn1_b1_F[1];
-	////adouble y3 = TotGyrCorIn1_b1_F[2];
-	////double TotGyrCorIn1_b1_F_f1;
-	////double TotGyrCorIn1_b1_F_f2;
-	////double TotGyrCorIn1_b1_F_f3;
-	////   
-	////y1 >>= TotGyrCorIn1_b1_F_f1;
-	////y2 >>= TotGyrCorIn1_b1_F_f2;
-	////y3 >>= TotGyrCorIn1_b1_F_f3;  
+	//// Indicate dependent variables.
+	Vec3 TotGyrCorIn1_b1_F = TotGyrCorIn1[1];
+	adouble y1 = TotGyrCorIn1_b1_F[0];
+	adouble y2 = TotGyrCorIn1_b1_F[1];
+	adouble y3 = TotGyrCorIn1_b1_F[2];
+	double TotGyrCorIn1_b1_F_f1;
+	double TotGyrCorIn1_b1_F_f2;
+	double TotGyrCorIn1_b1_F_f3;
+	   
+	y1 >>= TotGyrCorIn1_b1_F_f1;
+	y2 >>= TotGyrCorIn1_b1_F_f2;
+	y3 >>= TotGyrCorIn1_b1_F_f3;  
 
-	//trace_off();
+	trace_off();
 
 	///*double xp[4];
 	//xp[0] = Q.get(0).getValue(); xp[1] = U.get(0).getValue();
 	//xp[2] = Q.get(1).getValue(); xp[3] = U.get(1).getValue();*/
 
-	//double** J;
-	//J = myalloc(3, 4);
-	//jacobian(1, 3, 4, xp, J);
+	double** J;
+	J = myalloc(3, 4);
+	jacobian(1, 3, 4, xp, J);
 	//double *v1, *z1;
 	//v1 = myalloc(4); z1 = myalloc(3);
 	//v1[0] = 1.0;
@@ -130,11 +138,11 @@ int main() {
 	//jac_vec(1, 3, 4, xp, v1, z1);
 
 	////printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n", J[0], J[1], J[2], J[3], J[4], J[5], J[6], J[7], J[8], J[9], J[10], J[11]);
-	///*printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n",
-	//     J[0][0], J[0][1], J[0][2], J[0][3],
-	//     J[1][0], J[1][1], J[1][2], J[1][3],
-	//     J[2][0], J[2][1], J[2][2], J[2][3]);
-	//printf("Jacobian vector %f %f %f %f \n ", z1[0], z1[1], z1[2], z1[3]);*/
+	printf("Jacobian \n %f %f %f %f \n  %f %f %f %f \n  %f %f %f %f \n",
+	     J[0][0], J[0][1], J[0][2], J[0][3],
+	     J[1][0], J[1][1], J[1][2], J[1][3],
+	     J[2][0], J[2][1], J[2][2], J[2][3]);
+	//printf("Jacobian vector %f %f %f %f \n ", z1[0], z1[1], z1[2], z1[3]);
 }
 
 
