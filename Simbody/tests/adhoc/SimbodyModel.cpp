@@ -21,29 +21,36 @@ int main() {
 	Force::UniformGravity gravity(forces, matter, Vec3(0, Real(-9.81), 0));
 
 	// Describe mass and visualization properties for a generic body.
-	Body::Rigid bodyInfo(MassProperties(1.0, Vec3(0), UnitInertia(1)));
+	//Body::Rigid bodyInfo(MassProperties(1.0, Vec3(0), UnitInertia(1)));
+	Body::Rigid bodyInfo(MassProperties(1.0, Vec3(0, 0, 0), UnitInertia(0)));
 
 	// Create the moving (mobilized) bodies of the pendulum.
+	/*MobilizedBody::Pin pendulum1(matter.Ground(), Transform(Vec3(0)),
+		bodyInfo, Transform(Vec3(0, 1, 0)));
+	MobilizedBody::Pin pendulum2(pendulum1, Transform(Vec3(0)),
+		bodyInfo, Transform(Vec3(0, 1, 0)));*/
 	MobilizedBody::Pin pendulum1(matter.Ground(), Transform(Vec3(0)),
 		bodyInfo, Transform(Vec3(0, 1, 0)));
 	MobilizedBody::Pin pendulum2(pendulum1, Transform(Vec3(0)),
 		bodyInfo, Transform(Vec3(0, 1, 0)));
+
+
 
 	MobilizedBodyIndex indxpd1 = pendulum1.getMobilizedBodyIndex();
 	MobilizedBodyIndex indxpd2 = pendulum2.getMobilizedBodyIndex();
 
 	// Initialize the system and state.
 	State state = system.realizeTopology();
-	pendulum1.setRate(state, 5.0);
-	pendulum1.setAngle(state, 1);
-	pendulum2.setRate(state, 5.0);
-	pendulum2.setAngle(state, 0.5);
-
 	double xp[4];
-	xp[0] = 1; /*0.5;*/
-	xp[1] = 0.5; /*0.6;*/
-	xp[2] = 5; /*0.1;*/
-	xp[3] = 5; /*0.2;*/
+	xp[0] = 1;
+	xp[1] = 1;
+	xp[2] = 1;
+	xp[3] = 1;
+
+	/*pendulum1.setAngle(state, xp[0]);
+	pendulum2.setAngle(state, xp[1]);
+	pendulum1.setRate(state, xp[2]);
+	pendulum2.setRate(state, xp[3]);*/
 
 	trace_on(1);
 
@@ -76,7 +83,8 @@ int main() {
 	Vector_<SpatialVec> appliedBodyForces;
 	appliedBodyForces.resize(2);
 	appliedBodyForces.setToZero();
-	Vector knownUdot(0);
+	/*Vector knownUdot(0);*/
+	Vector knownUdot(2); knownUdot[0] = 0.0; knownUdot[1] = 0;
 	Vector residualMobilityForces(2);
 	residualMobilityForces.resize(2);
 	residualMobilityForces.setToZero();
