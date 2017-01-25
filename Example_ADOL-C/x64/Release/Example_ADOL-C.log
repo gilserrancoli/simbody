@@ -1,0 +1,17 @@
+﻿  Example_ADOL-C.cpp
+C:\ADOL-C-sparse\include\adolc\advector.h(130): warning C4267: 'argument': conversion from 'size_t' to 'locint', possible loss of data
+Example_ADOL-C.cpp(207): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+Example_ADOL-C.cpp(215): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+Example_ADOL-C.cpp(224): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+Example_ADOL-C.cpp(230): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+Example_ADOL-C.cpp(190): warning C4244: 'return': conversion from '__int64' to 'double', possible loss of data
+  Example_ADOL-C.cpp(216): note: see reference to function template instantiation 'double timeit<main::<lambda_d9618ad2ec47d3b3abc343b879c11a3a>>(Function)' being compiled
+          with
+          [
+              Function=main::<lambda_d9618ad2ec47d3b3abc343b879c11a3a>
+          ]
+  Generating code
+  All 185 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Example_ADOL-C.vcxproj -> C:\Simbody-source-WS\simbody\Build\x64\Release\Example_ADOL-C.exe
+  Example_ADOL-C.vcxproj -> C:\Simbody-source-WS\simbody\Build\x64\Release\Example_ADOL-C.pdb (Full PDB)
